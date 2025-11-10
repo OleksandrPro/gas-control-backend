@@ -1,0 +1,12 @@
+services:
+  gas-control-api:
+    build:
+      context: .
+      dockerfile: ./src/Dockerfile
+    container_name: gas-control-backend
+    ports:
+      - "7777:7777"
+    volumes:
+      - ./src:/app/src
+    command: uvicorn main:app --host 0.0.0.0 --port 7777 --reload
+
