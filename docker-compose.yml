@@ -1,8 +1,27 @@
 services:
+  postgres:
+    image: postgres:16
+    container_name: gas-control-db
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: gas_control_database
+    ports:
+      - "5401:5432"
+    networks:
+      - db-network
+    volumes:
+      - pgdata-gc:/var/lib/postgresql/data
+
   gas-control-api:
     build:
       context: .
       dockerfile: ./src/Dockerfile
+    networks:
+      - db-network
+    depends_on:
+      - postgres
     container_name: gas-control-backend
     ports:
       - "7777:7777"
@@ -10,3 +29,8 @@ services:
       - ./src:/app/src
     command: uvicorn main:app --host 0.0.0.0 --port 7777 --reload
 
+volumes:
+  pgdata-gc:
+
+networks:
+  db-network:
