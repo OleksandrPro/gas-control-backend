@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from sqlalchemy import String, Integer, Float, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from inventory_system.models import Base
@@ -49,7 +49,7 @@ class Card(Base):
         String(50), unique=True, nullable=False
     )
 
-    cut_type_id: Mapped[int] = mapped_column(ForeignKey("cut_types.id"))
-    cut_type: Mapped["CutType"] = relationship()
+    cut_type_id: Mapped[Optional[int]] = mapped_column(ForeignKey("cut_types.id"), nullable=True)
+    cut_type: Mapped["CutType | None"] = relationship()
 
     equipment_list: Mapped[List["EquipmentBase"]] = relationship(back_populates="card", cascade="all, delete-orphan")
