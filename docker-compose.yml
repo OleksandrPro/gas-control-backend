@@ -7,17 +7,29 @@ services:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: gas_control_database
+    env_file:
+      - .env
     ports:
-      - "5401:5432"
+      - "5432:5432"
     networks:
       - db-network
     volumes:
       - pgdata-gc:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d gas_control_database"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   gas-control-api:
     build:
       context: .
       dockerfile: ./src/Dockerfile
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
     networks:
       - db-network
     depends_on:
@@ -27,7 +39,7 @@ services:
       - "7777:7777"
     volumes:
       - ./src:/app/src
-    command: uvicorn main:app --host 0.0.0.0 --port 7777 --reload
+    command: sh -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 7777 --reload"
 
 volumes:
   pgdata-gc:
