@@ -42,13 +42,9 @@ async def get_hello_world():
 async def read_root():
     return await get_hello_world()
 
-
-@app.get("/items/{item_id}")
-async def read_item(item_id: int, q: Union[str, None] = None):
-    return await {"item_id": item_id, "q": q}
-
 @app.get("/cards/{card_id}: int")
 async def read_card(card_id: int):
+    #TODO Actually implement this endpoint instead of test implementation
     card = await return_card()
     card["id"] = card_id
     return card
