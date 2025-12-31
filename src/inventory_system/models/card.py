@@ -17,6 +17,9 @@ class Card(Base):
     gas_pipeline_section: Mapped[str] = mapped_column(
         String(300), unique=True, nullable=False
     )
+    
+    pressure_type_id: Mapped[int] = mapped_column(ForeignKey("pressure_types.id"))
+    pressure_type: Mapped["PressureType"] = relationship()
 
     property_type_id: Mapped[int] = mapped_column(ForeignKey("property_types.id"))
     property_type: Mapped["PropertyType"] = relationship()

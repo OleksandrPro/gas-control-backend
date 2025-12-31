@@ -8,7 +8,8 @@ from inventory_system.models import (
     ObjectName, 
     CutType,
     GroundLevel,
-    PipeMaterial
+    PipeMaterial,
+    PressureType
 )
 
 from inventory_system.schemas import LookupItemSchema, LookupCreateSchema, LookupUpdateSchema
@@ -46,6 +47,10 @@ async def get_ground_levels(manager: Annotated[DatabaseManager, Depends(get_mana
 @lookups_router.get("/pipe-materials", response_model=List[LookupItemSchema])
 async def get_pipe_materials(manager: Annotated[DatabaseManager, Depends(get_manager)]):
     return await manager.get_all_lookups(PipeMaterial)
+
+@lookups_router.get("/pressure-types", response_model=List[LookupItemSchema])
+async def get_pressure_types(manager: Annotated[DatabaseManager, Depends(get_manager)]):
+    return await manager.get_all_lookups(PressureType)
 
 
 # --- POST Endpoints ---
@@ -91,6 +96,13 @@ async def add_pipe_material(
     manager: Annotated[DatabaseManager, Depends(get_manager)]
 ):
     return await manager.get_or_create_lookup(PipeMaterial, schema.value, "Failed to add pipe material")
+
+@lookups_router.post("/pressure-types", response_model=LookupItemSchema)
+async def add_pressure_type(
+    schema: LookupCreateSchema, 
+    manager: Annotated[DatabaseManager, Depends(get_manager)]
+):
+    return await manager.get_or_create_lookup(PressureType, schema.value, "Failed to add pressure type")
 
 
 # --- PUT Endpoints ---
@@ -142,3 +154,11 @@ async def update_pipe_material(
     manager: Annotated[DatabaseManager, Depends(get_manager)]
 ):
     return await manager.update_lookup_record(PipeMaterial, record_id, schema.value, "Failed to update pipe material")
+
+@lookups_router.put("/pressure-types/{record_id}", response_model=LookupItemSchema)
+async def update_pipe_material(
+    record_id: int,
+    schema: LookupUpdateSchema, 
+    manager: Annotated[DatabaseManager, Depends(get_manager)]
+):
+    return await manager.update_lookup_record(PressureType, record_id, schema.value, "Failed to update ressure type")

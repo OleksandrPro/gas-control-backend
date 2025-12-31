@@ -36,3 +36,8 @@ class PipeMaterial(Base):
     __tablename__ = "pipe_materials"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     value: Mapped[str] = mapped_column(String(70), unique=True, nullable=False)
+
+class PressureType(Base):
+    __tablename__ = "pressure_types"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    value: Mapped[str] = mapped_column(String(70), unique=True, nullable=False)
