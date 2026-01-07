@@ -35,11 +35,9 @@ class CardCreateSchema(BaseModel):
     district_id: int = Field(alias="district")
     object_name_id: int = Field(alias="object_name")
     
-    # cut_type делаем Optional, чтобы его можно было не передавать
     cut_type_id: Optional[int] = Field(default=None, alias="cut_type")
 
     class Config:
-        # Разрешаем использовать и алиасы, и реальные имена при создании
         populate_by_name = True
 
 class CardUpdateSchema(BaseModel):

@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import select, Executable
 from fastapi import HTTPException
-from inventory_system.models import Base
+from inventory_system.models import Base, Card
 
 
 logger = logging.getLogger(__name__)
@@ -41,10 +41,41 @@ class DatabaseManager:
         except SQLAlchemyError:
             logger.exception(err_msg)
             raise
+
+    async def get_all_cards(self) -> List[Card]:
+        query = select(Card)
+        
+        return await self.get_all(
+            query=query, 
+            err_msg=f"Error loading card table {Card.__tablename__}"
+        )
     
+    async def get_card(self, id: int) -> Card:
+        query = select(Card).where(Card.id == id)
+        card = await self.get_first(query, err_msg="Error finding card with id '{id}'")
+        
+        if not card:
+            raise HTTPException(status_code=404, detail=f"Record with id={id} not found")
+        
+        return card
+
     async def get_all_lookups(self, model: Type[ModelType]) -> List[ModelType]:
         """
         Universal method to retrieve all records of a lookup table.
+        
+        Args:
+            model: SQLAlchemy model class (e.g., District, PropertyType)
+        """
+        query = select(model).order_by(model.value)
+        
+        return await self.get_all(
+            query=query, 
+            err_msg=f"Error loading lookup table {model.__tablename__}"
+        )
+
+    async def get_all_model_records(self, model: Type[ModelType]) -> List[ModelType]:
+        """
+        Universal method to retrieve all records of a certain table.
         
         Args:
             model: SQLAlchemy model class (e.g., District, PropertyType)

@@ -14,26 +14,6 @@ from inventory_system.routers import lookups_router
 
 app = FastAPI()
 
-async def return_card():
-    return {
-        "inventory_number": "7q947847197",
-        "inventory_number_eskd": "sjkvhsjkvhjksvs",
-
-        "gas_pipeline_section": "upper",
-
-        "property_type": "goverment",
-
-        # TODO Clarify what does this column in original table even mean
-        "described_name": "HZ",
-
-        # TODO Clarify what does 'OZ' mean
-        "build_date_dn": "06.12.2025",
-
-        "total_length": "35.6",
-
-        "district": "Saltov",
-        "object_name": "Test",
-    }
 
 async def get_hello_world():
     return {"Hello": "World"}
@@ -42,22 +22,28 @@ async def get_hello_world():
 async def read_root():
     return await get_hello_world()
 
-@app.get("/cards/{card_id}: int")
-async def read_card(card_id: int):
-    #TODO Actually implement this endpoint instead of test implementation
-    card = await return_card()
-    card["id"] = card_id
+@app.get("/cards")
+async def read_all_cards(session: Annotated[AsyncSession, Depends(get_session)]):
+    #TODO later add proper response_model to avoid potential mistakes with auto jsonable_encoder
+    db_manager = DatabaseManager(session)
+    cards = await db_manager.get_all_cards()
+    return cards
+
+@app.get("/cards/{id}")
+async def read_card(id: int, session: Annotated[AsyncSession, Depends(get_session)]):
+    #TODO later add proper response_model to avoid potential mistakes with auto jsonable_encoder
+    db_manager = DatabaseManager(session)
+    card = await db_manager.get_card(id)
     return card
 
 @app.post("/cards")
 async def create_card(card: DisplayMainPageCard, session: Annotated[AsyncSession, Depends(get_session)]):
     db_manager = DatabaseManager(session)
     repo = CardRepository(db_manager=db_manager)
-    #
     return await repo.create(**card.model_dump())
 
-@app.patch("/cards/{card_id}: int")
-async def update_card(card_id: int, new_data: CardUpdateSchema, session: Annotated[AsyncSession, Depends(get_session)]):
+@app.patch("/cards/{id}")
+async def update_card(id: int, new_data: CardUpdateSchema, session: Annotated[AsyncSession, Depends(get_session)]):
     db_manager = DatabaseManager(session)
     repo = CardRepository(db_manager=db_manager)
     
