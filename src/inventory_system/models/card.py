@@ -52,4 +52,7 @@ class Card(Base):
     cut_type_id: Mapped[Optional[int]] = mapped_column(ForeignKey("cut_types.id"), nullable=True)
     cut_type: Mapped["CutType | None"] = relationship()
 
-    equipment_list: Mapped[List["EquipmentBase"]] = relationship(back_populates="card", cascade="all, delete-orphan")
+    equipment_list: Mapped[List["EquipmentItem"]] = relationship(
+        back_populates="card", 
+        cascade="all, delete-orphan"
+    )
