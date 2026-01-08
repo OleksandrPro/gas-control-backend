@@ -2,22 +2,6 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field
 from datetime import date
 
-
-class LookupCreateSchema(BaseModel):
-    value: str
-
-class LookupUpdateSchema(BaseModel):
-    value: str
-
-class LookupItemSchema(BaseModel):
-    """
-    Versatile schema for every lookup table item (id + value).
-    """
-    id: int
-    value: str
-
-    model_config = ConfigDict(from_attributes=True)
-
 class CardCreateSchema(BaseModel):
     inventory_number: str
     inventory_number_eskd: str
@@ -82,33 +66,3 @@ class DisplayMainPageCard(BaseModel):
     cut_type_id: Optional[int] = None
 
     model_config = ConfigDict(from_attributes=True)
-
-
-"""
-ПРИ открытии карточки (есть баланс, есть по факту)
-Дільниця газопровода
-Діаметр
-Довжина, км
-Розташування
-Матеріал труб
-"""
-
-
-class EquipmentBase(BaseModel):
-
-    # Also known as gas_pipeline_section or 'Дільниця газопровода'
-    # В заголовке секции содержится информация о 'Дільниця газопровода'
-    # А само содержимое обычных строк - данные об оборудовании
-    equipment: str
-
-
-class PipeData(EquipmentBase):
-    diameter: float
-    total_length: float
-
-    ground_level: str
-    pipe_material: str
-
-
-class CardEquipment(BaseModel):
-    equipment: list[EquipmentBase]

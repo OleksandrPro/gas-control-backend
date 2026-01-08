@@ -1,0 +1,40 @@
+from sqlalchemy import select,
+from sqlalchemy.orm import selectinload
+from inventory_system.schemas import EquipmentDataCreate
+from utils.db_utils import DatabaseManager
+from inventory_system.models import EquipmentItem, EquipmentData, PipeData, ValveData
+
+class EquipmentRepository:
+    def __init__(self, db_manager: DatabaseManager):
+        self.manager = db_manager
+
+    async def create_item(self, card_id: int, item_type: str) -> EquipmentItem:
+        item = EquipmentItem(card_id=card_id, item_type=item_type)
+        return await self.manager.add_record(item, err_msg="Failed to create equipment item")
+
+    async def add_data_entry(self, item_id: int, data_schema: EquipmentDataCreate):
+        # We need to determine which model class to use based on the input type
+        if data_schema.type == "pipe_data":
+            model_class = PipeData
+        elif data_schema.type == "valve_data":
+            model_class = ValveData
+        else:
+            raise ValueError(f"Unknown data type: {data_schema.type}")
+
+        # Convert Pydantic to dict and create model instance
+        data_dict = data_schema.model_dump()
+        # Remove 'type' field if it's handled by polymorphism automatically or keep it
+        # SQLAlchemy polymorphism usually handles 'type' automatically if defined in mapper_args
+        
+        # We need to manually set item_id
+        entry = model_class(**data_dict, item_id=item_id)
+        
+        return await self.manager.add_record(entry, err_msg="Failed to add data entry")
+
+    async def get_items_by_card(self, card_id: int):
+        # We need to load items WITH their data entries (eager loading)
+        from sqlalchemy.orm import selectinload
+        query = select(EquipmentItem).where(EquipmentItem.card_id == card_id).options(
+            selectinload(EquipmentItem.data_entries)
+        )
+        return await self.manager.get_all(query, err_msg="Failed to fetch equipment")
