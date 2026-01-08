@@ -20,6 +20,9 @@ class EquipmentItem(Base):
     
     item_type: Mapped[str] = mapped_column(String(50), nullable=False)
 
+    # Stores the raw string
+    description: Mapped[str] = mapped_column(String(500), nullable=False)
+
     # Relation to specific data entries (One-to-Many).
     # One item can have multiple data entries (Balance, Fact, Cut)
     data_entries: Mapped[List["EquipmentData"]] = relationship(back_populates="item", cascade="all, delete-orphan")
@@ -76,4 +79,17 @@ class ValveData(EquipmentData):
 
     __mapper_args__ = {
         "polymorphic_identity": "valve_data",
+    }
+
+
+class GenericData(EquipmentData):
+    """
+    Fallback table for equipment types that don't have a specific schema yet.
+    Used for GK, regulators, etc., until they are properly modeled.
+    """
+    __tablename__ = "equipment_data_generic"
+    id: Mapped[int] = mapped_column(ForeignKey("equipment_data.id"), primary_key=True)
+
+    __mapper_args__ = {
+        "polymorphic_identity": "generic_data",
     }
