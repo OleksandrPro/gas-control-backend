@@ -30,10 +30,27 @@ class DatabaseManager:
         try:
             await self.session.delete(model_instance)
             await self.session.commit()
+        except IntegrityError:
+            # This block catches Foreign Key violations
+            await self.session.rollback()
+            logger.warning(f"Integrity error during deletion: {err_msg}")
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Cannot delete this record because it is currently in use by other entities."
+            )
         except SQLAlchemyError:
             await self.session.rollback()
             logger.exception(err_msg)
             raise
+
+    async def delete_record_by_id(self, model: Type[ModelType], record_id: int, err_msg: str) -> None:
+        query = select(model).where(model.id == record_id)
+        record = await self.get_first(query, err_msg="Error finding record for deletion")
+        
+        if not record:
+            raise HTTPException(status_code=404, detail=f"Record with id={record_id} not found")
+            
+        await self.delete_record(record, err_msg=err_msg)
 
     async def get_first(self, query: Executable, err_msg: str = "Error executing query") -> Optional[Any]:
         try:
