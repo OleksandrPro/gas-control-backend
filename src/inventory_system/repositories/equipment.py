@@ -1,4 +1,4 @@
-from sqlalchemy import select,
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from inventory_system.schemas import EquipmentDataCreate
 from utils.db_utils import DatabaseManager
