@@ -26,3 +26,12 @@ class CardRepository:
             card, 
             err_msg=f"Failed to update card. ID: {card_id}"
         )
+    
+    async def delete(self, card_id: int) -> bool:
+        card = await self.get_by_id(card_id)
+        
+        if not card:
+            return False
+            
+        await self.manager.delete_record(card, err_msg=f"Failed to delete card {card_id}")
+        return True

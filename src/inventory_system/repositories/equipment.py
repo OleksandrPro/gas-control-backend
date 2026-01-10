@@ -38,3 +38,30 @@ class EquipmentRepository:
             selectinload(EquipmentItem.data_entries)
         )
         return await self.manager.get_all(query, err_msg="Failed to fetch equipment")
+    
+    async def delete_item(self, item_id: int) -> bool:
+        """
+        Deletes the Equipment Item container. 
+        Due to cascade settings, this will also delete all associated Data entries.
+        """
+        query = select(EquipmentItem).where(EquipmentItem.id == item_id)
+        item = await self.manager.get_first(query, err_msg=f"Error finding item {item_id}")
+        
+        if not item:
+            return False
+            
+        await self.manager.delete_record(item, err_msg=f"Failed to delete equipment item {item_id}")
+        return True
+
+    async def delete_data_entry(self, data_id: int) -> bool:
+        """
+        Deletes a specific data entry (e.g. only 'Fact' column data).
+        """
+        query = select(EquipmentData).where(EquipmentData.id == data_id)
+        entry = await self.manager.get_first(query, err_msg=f"Error finding data entry {data_id}")
+        
+        if not entry:
+            return False
+            
+        await self.manager.delete_record(entry, err_msg=f"Failed to delete data entry {data_id}")
+        return True

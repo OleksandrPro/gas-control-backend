@@ -26,6 +26,15 @@ class DatabaseManager:
             logger.exception(err_msg)
             raise
 
+    async def delete_record(self, model_instance: Any, err_msg: str = "Error deleting record") -> None:
+        try:
+            await self.session.delete(model_instance)
+            await self.session.commit()
+        except SQLAlchemyError:
+            await self.session.rollback()
+            logger.exception(err_msg)
+            raise
+
     async def get_first(self, query: Executable, err_msg: str = "Error executing query") -> Optional[Any]:
         try:
             result = await self.session.scalars(query)

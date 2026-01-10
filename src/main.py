@@ -13,6 +13,8 @@ from inventory_system.repositories.card import CardRepository
 
 from inventory_system.routers import lookups_router
 
+from fastapi import HTTPException, Response, status
+
 app = FastAPI()
 
 
@@ -57,11 +59,27 @@ async def update_card(id: int, new_data: CardUpdateSchema, session: Annotated[As
         
     return updated_card
 
+@app.delete("/cards/{card_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_card(
+    card_id: int, 
+    session: Annotated[AsyncSession, Depends(get_session)]
+):
+    db_manager = DatabaseManager(session)
+    repo = CardRepository(db_manager)
+    
+    deleted = await repo.delete(card_id)
+    
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Card not found")
+    
+    # 204 No Content is standard for delete operations
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
 
 from inventory_system.schemas import (
     EquipmentItemCreate, 
     EquipmentItemRead,
-    EquipmentDataCreate # Union схема для обновления
+    EquipmentDataCreate
 )
 
 @app.post("/cards/{card_id}/equipment", response_model=EquipmentItemRead)
@@ -73,17 +91,12 @@ async def create_equipment(
     db_manager = DatabaseManager(session)
     repo = EquipmentRepository(db_manager)
     
-    # 1. Создаем контейнер
     item = await repo.create_item(card_id, item_in.item_type)
     
-    # 2. Создаем записи данных (Баланс, Факт и т.д.)
     for data_entry in item_in.data_entries:
         await repo.add_data_entry(item.id, data_entry)
     
-    # 3. Перезагружаем объект, чтобы подтянуть созданные связи для ответа
-    # (Pydantic ожидает полную структуру)
     return await repo.get_item_by_id(item.id)
-
 
 @app.get("/cards/{card_id}/equipment", response_model=List[EquipmentItemRead])
 async def get_card_equipment(
@@ -94,27 +107,56 @@ async def get_card_equipment(
     repo = EquipmentRepository(db_manager)
     return await repo.get_items_by_card(card_id)
 
-
-# --- НОВЫЙ ПУТЬ ДЛЯ ОБНОВЛЕНИЯ ---
-# Обновляем конкретную "строчку" данных (например, Факт у трубы)
-# data_id - это ID из таблицы equipment_data (не Item!)
-
-@app.patch("/equipment-data/{data_id}") 
+@app.patch("/equipment-data/{equipment_id}") 
 async def update_equipment_data(
-    data_id: int,
-    update_data: dict, # Или специальная схема EquipmentDataUpdate
+    equipment_id: int,
+    update_data: dict, # TODO try to implement something like EquipmentDataUpdate
     session: Annotated[AsyncSession, Depends(get_session)]
 ):
     db_manager = DatabaseManager(session)
     repo = EquipmentRepository(db_manager)
     
-    # Очищаем None значения, если используем схему с Optional
-    # clean_data = update_schema.model_dump(exclude_unset=True) 
+    # Clear None values when using a schema with Optional fields
+    # clean_data = update_schema.model_dump(exclude_unset=True)
     
-    result = await repo.update_data_entry(data_id, **update_data)
+    result = await repo.update_data_entry(equipment_id, **update_data)
     if not result:
         raise HTTPException(status_code=404, detail="Data entry not found")
         
     return result
+
+# Delete Equipment Data Entry Endpoint
+# This deletes specific data (e.g. removes "Fact" data, keeping "Balance")
+@app.delete("/equipment-data/{equipment_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_equipment_data(
+    equipment_id: int,
+    session: Annotated[AsyncSession, Depends(get_session)]
+):
+    db_manager = DatabaseManager(session)
+    repo = EquipmentRepository(db_manager)
+    
+    deleted = await repo.delete_data_entry(equipment_id)
+    
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Data entry not found")
+        
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+# Delete Equipment Item (Container) Endpoint
+# This deletes the whole "row" of equipment (e.g. "Pipe #1" + Balance + Fact + Cut)
+@app.delete("/equipment-items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_equipment_item(
+    item_id: int,
+    session: Annotated[AsyncSession, Depends(get_session)]
+):
+    db_manager = DatabaseManager(session)
+    repo = EquipmentRepository(db_manager)
+    
+    deleted = await repo.delete_item(item_id)
+    
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Equipment item not found")
+        
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 app.include_router(lookups_router)
