@@ -1,0 +1,5 @@
+.git
+.venv
+pycache
+tests/
+docker-compose.override.yml

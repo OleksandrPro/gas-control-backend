@@ -9,5 +9,6 @@ venv/
 
 # Environments
 .env
+docker-compose.override.yml
 
 /sql

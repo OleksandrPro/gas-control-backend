@@ -1,0 +1,12 @@
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+
+  gas-control-api:
+    ports:
+      - "7777:7777"
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+    command: sh -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 7777 --reload"
