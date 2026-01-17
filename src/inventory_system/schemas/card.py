@@ -12,17 +12,13 @@ class CardCreateSchema(BaseModel):
     total_length: float
     folder: str
     
-    # --- ВАЖНО: Маппинг полей ---
-    # alias="property_type" позволяет принимать JSON {"property_type": 1}
-    # Но в Python это будет self.property_type_id = 1
     property_type_id: int = Field(alias="property_type")
     district_id: int = Field(alias="district")
     object_name_id: int = Field(alias="object_name")
     
     cut_type_id: Optional[int] = Field(default=None, alias="cut_type")
 
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 class CardUpdateSchema(BaseModel):
     inventory_number: Optional[str] = None
