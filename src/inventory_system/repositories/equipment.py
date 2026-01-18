@@ -1,5 +1,6 @@
+from typing import Optional
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, selectin_polymorphic
 from inventory_system.schemas import EquipmentDataCreate
 from utils.db_utils import DatabaseManager
 from inventory_system.models import EquipmentItem, EquipmentData, PipeData, ValveData
@@ -8,8 +9,8 @@ class EquipmentRepository:
     def __init__(self, db_manager: DatabaseManager):
         self.manager = db_manager
 
-    async def create_item(self, card_id: int, item_type: str) -> EquipmentItem:
-        item = EquipmentItem(card_id=card_id, item_type=item_type)
+    async def create_item(self, card_id: int, item_type: str, description: str) -> EquipmentItem:
+        item = EquipmentItem(card_id=card_id, item_type=item_type, description=description)
         return await self.manager.add_record(item, err_msg="Failed to create equipment item")
 
     async def add_data_entry(self, item_id: int, data_schema: EquipmentDataCreate):
@@ -31,13 +32,22 @@ class EquipmentRepository:
         
         return await self.manager.add_record(entry, err_msg="Failed to add data entry")
 
-    async def get_items_by_card(self, card_id: int):
-        # We need to load items WITH their data entries (eager loading)
-        from sqlalchemy.orm import selectinload
-        query = select(EquipmentItem).where(EquipmentItem.card_id == card_id).options(
-            selectinload(EquipmentItem.data_entries)
+    async def get_item_by_id(self, item_id: int) -> Optional[EquipmentItem]:
+        loader = selectinload(EquipmentItem.data_entries).selectin_polymorphic(
+            [PipeData, ValveData]
         )
-        return await self.manager.get_all(query, err_msg="Failed to fetch equipment")
+        query = select(EquipmentItem).where(EquipmentItem.id == item_id).options(loader)
+        
+        return await self.manager.get_first(query, err_msg=f"Item {item_id} not found")
+
+    async def get_items_by_card(self, card_id: int):
+        loader = selectinload(EquipmentItem.data_entries).selectin_polymorphic(
+            [PipeData, ValveData]
+        )
+        
+        query = select(EquipmentItem).where(EquipmentItem.card_id == card_id).options(loader)
+        
+        return await self.manager.get_all(query, err_msg="Failed to fetch equipment items")
     
     async def delete_item(self, item_id: int) -> bool:
         """

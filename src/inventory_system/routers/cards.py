@@ -28,7 +28,7 @@ async def read_card(id: int, session: Annotated[AsyncSession, Depends(get_sessio
     return card
 
 @cards_router.post("")
-async def create_card(card: DisplayMainPageCard, session: Annotated[AsyncSession, Depends(get_session)]):
+async def create_card(card: CardCreateSchema, session: Annotated[AsyncSession, Depends(get_session)]):
     db_manager = DatabaseManager(session)
     repo = CardRepository(db_manager=db_manager)
     return await repo.create(**card.model_dump())

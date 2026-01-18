@@ -25,7 +25,7 @@ async def create_equipment(
     db_manager = DatabaseManager(session)
     repo = EquipmentRepository(db_manager)
     
-    item = await repo.create_item(card_id, item_in.item_type)
+    item = await repo.create_item(card_id, item_in.item_type, item_in.description)
     
     for data_entry in item_in.data_entries:
         await repo.add_data_entry(item.id, data_entry)

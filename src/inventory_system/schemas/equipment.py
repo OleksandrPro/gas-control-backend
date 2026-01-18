@@ -16,8 +16,8 @@ class PipeDataCreate(EquipmentDataBase):
     type: Literal["pipe_data"] = "pipe_data"
     diameter: float
     length: float
-    material: Optional[str] = None
-    placement: Optional[str] = None
+    material_id: Optional[int] = None
+    groung_level_id: Optional[int] = None
 
 class ValveDataCreate(EquipmentDataBase):
     type: Literal["valve_data"] = "valve_data"
@@ -32,6 +32,7 @@ EquipmentDataCreate = Union[PipeDataCreate, ValveDataCreate]
 # Item Schema (Container)
 class EquipmentItemCreate(BaseModel):
     item_type: str # "pipe" or "valve"
+    description: str
     data_entries: List[EquipmentDataCreate]
 
     model_config = ConfigDict(from_attributes=True)
@@ -48,6 +49,7 @@ class EquipmentItemRead(BaseModel):
     id: int
     card_id: int
     item_type: str
+    description: str
     data_entries: List[EquipmentDataRead]
 
     model_config = ConfigDict(from_attributes=True)
