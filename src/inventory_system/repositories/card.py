@@ -12,7 +12,7 @@ class CardRepository:
         return result
     
     async def update(self, card_id: int, **update_data) -> Optional[Card]:
-        card = await self.get_by_id(card_id)
+        card = await self.manager.get_card(card_id)
         
         if not card:
             return None
@@ -28,7 +28,7 @@ class CardRepository:
         )
     
     async def delete(self, card_id: int) -> bool:
-        card = await self.get_by_id(card_id)
+        card = await self.manager.get_card(card_id)
         
         if not card:
             return False

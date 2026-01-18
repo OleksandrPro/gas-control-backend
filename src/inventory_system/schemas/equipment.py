@@ -22,8 +22,7 @@ class PipeDataCreate(EquipmentDataBase):
 class ValveDataCreate(EquipmentDataBase):
     type: Literal["valve_data"] = "valve_data"
     diameter: float
-    count: int
-    model_number: Optional[str] = None
+    quantity: int
 
 # Union for creating data
 EquipmentDataCreate = Union[PipeDataCreate, ValveDataCreate]

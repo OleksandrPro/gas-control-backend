@@ -40,7 +40,7 @@ async def update_card(id: int, new_data: CardUpdateSchema, session: Annotated[As
     
     update_data = new_data.model_dump(exclude_unset=True)
 
-    updated_card = await repo.update(**update_data)
+    updated_card = await repo.update(id, **update_data)
 
     if not updated_card:
         raise HTTPException(status_code=404, detail="Card wasn't found")

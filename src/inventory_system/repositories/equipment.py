@@ -49,6 +49,21 @@ class EquipmentRepository:
         
         return await self.manager.get_all(query, err_msg="Failed to fetch equipment items")
     
+    async def update_data_entry(self, data_id: int, **update_data) -> Optional[EquipmentData]:
+        query = select(EquipmentData).where(EquipmentData.id == data_id).options(
+            selectin_polymorphic(EquipmentData, [PipeData, ValveData])
+        )
+        entry = await self.manager.get_first(query, err_msg=f"Data entry {data_id} not found")
+        
+        if not entry:
+            return None
+            
+        for key, value in update_data.items():
+            if hasattr(entry, key):
+                setattr(entry, key, value)
+        
+        return await self.manager.add_record(entry, err_msg="Failed to update data entry")
+
     async def delete_item(self, item_id: int) -> bool:
         """
         Deletes the Equipment Item container. 

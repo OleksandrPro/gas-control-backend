@@ -21,6 +21,13 @@ class DatabaseManager:
             await self.session.commit()
             await self.session.refresh(model_instance)
             return model_instance
+        except IntegrityError:
+            await self.session.rollback()
+            logger.warning(f"Integrity error (duplicate?): {err_msg}")
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Resource already exists or violates unique constraints."
+            )
         except SQLAlchemyError:
             await self.session.rollback()
             logger.exception(err_msg)
