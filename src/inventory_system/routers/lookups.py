@@ -170,7 +170,7 @@ async def delete_district(
     record_id: int,
     manager: Annotated[DatabaseManager, Depends(get_manager)]
 ):
-    await manager.delete_lookup_record(District, record_id, "Failed to delete district")
+    await manager.delete_record_by_id(District, record_id, "Failed to delete district")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @lookups_router.delete("/property-types/{record_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -178,7 +178,7 @@ async def delete_property_type(
     record_id: int,
     manager: Annotated[DatabaseManager, Depends(get_manager)]
 ):
-    await manager.delete_lookup_record(PropertyType, record_id, "Failed to delete property type")
+    await manager.delete_record_by_id(PropertyType, record_id, "Failed to delete property type")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @lookups_router.delete("/object-names/{record_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -186,7 +186,7 @@ async def delete_object_name(
     record_id: int,
     manager: Annotated[DatabaseManager, Depends(get_manager)]
 ):
-    await manager.delete_lookup_record(ObjectName, record_id, "Failed to delete object name")
+    await manager.delete_record_by_id(ObjectName, record_id, "Failed to delete object name")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @lookups_router.delete("/cut-types/{record_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -194,7 +194,7 @@ async def delete_cut_type(
     record_id: int,
     manager: Annotated[DatabaseManager, Depends(get_manager)]
 ):
-    await manager.delete_lookup_record(CutType, record_id, "Failed to delete cut type")
+    await manager.delete_record_by_id(CutType, record_id, "Failed to delete cut type")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @lookups_router.delete("/ground-levels/{record_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -202,7 +202,7 @@ async def delete_ground_level(
     record_id: int,
     manager: Annotated[DatabaseManager, Depends(get_manager)]
 ):
-    await manager.delete_lookup_record(GroundLevel, record_id, "Failed to delete ground level")
+    await manager.delete_record_by_id(GroundLevel, record_id, "Failed to delete ground level")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @lookups_router.delete("/pipe-materials/{record_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -210,7 +210,7 @@ async def delete_pipe_material(
     record_id: int,
     manager: Annotated[DatabaseManager, Depends(get_manager)]
 ):
-    await manager.delete_lookup_record(PipeMaterial, record_id, "Failed to delete pipe material")
+    await manager.delete_record_by_id(PipeMaterial, record_id, "Failed to delete pipe material")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @lookups_router.delete("/pressure-types/{record_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -218,5 +218,5 @@ async def delete_pressure_type(
     record_id: int,
     manager: Annotated[DatabaseManager, Depends(get_manager)]
 ):
-    await manager.delete_lookup_record(PressureType, record_id, "Failed to delete pressure type")
+    await manager.delete_record_by_id(PressureType, record_id, "Failed to delete pressure type")
     return Response(status_code=status.HTTP_204_NO_CONTENT)

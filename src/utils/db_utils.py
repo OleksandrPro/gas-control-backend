@@ -1,9 +1,9 @@
 import logging
 from typing import Type, TypeVar, List, Any, Sequence, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy import select, Executable
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from inventory_system.models import Base, Card
 
 
