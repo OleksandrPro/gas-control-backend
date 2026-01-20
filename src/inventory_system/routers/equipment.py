@@ -3,8 +3,10 @@ from typing import List, Union, Annotated
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from utils.db_utils import DatabaseManager
+from inventory_system.services.equipment import EquipmentService
 from inventory_system.repositories.equipment import EquipmentRepository
+from inventory_system.repositories.card import CardRepository
+from utils.db_utils import DatabaseManager
 from database import get_session
 
 from inventory_system.schemas import (
@@ -14,23 +16,21 @@ from inventory_system.schemas import (
 )
 
 
-equipment_router = APIRouter(tags=["Equipment"]) 
+equipment_router = APIRouter(tags=["Equipment"])
+
+def get_equipment_service(session: AsyncSession = Depends(get_session)) -> EquipmentService:
+    db_manager = DatabaseManager(session)
+    equipment_repo = EquipmentRepository(db_manager)
+    card_repo = CardRepository(db_manager)
+    return EquipmentService(equipment_repo, card_repo)
 
 @equipment_router.post("/cards/{card_id}/equipment", response_model=EquipmentItemRead)
 async def create_equipment(
     card_id: int, 
     item_in: EquipmentItemCreate, 
-    session: Annotated[AsyncSession, Depends(get_session)]
+    service: Annotated[EquipmentService, Depends(get_equipment_service)]
 ):
-    db_manager = DatabaseManager(session)
-    repo = EquipmentRepository(db_manager)
-    
-    item = await repo.create_item(card_id, item_in.item_type, item_in.description)
-    
-    for data_entry in item_in.data_entries:
-        await repo.add_data_entry(item.id, data_entry)
-    
-    return await repo.get_item_by_id(item.id)
+    return await service.add_equipment_to_card(card_id, item_in)
 
 @equipment_router.get("/cards/{card_id}/equipment", response_model=List[EquipmentItemRead])
 async def get_card_equipment(
