@@ -5,6 +5,26 @@ from fastapi import status
 
 from inventory_system.models import EquipmentItem, PipeData, EquipmentData, ValveData
 
+def get_valid_full_cut_entries(seed_lookups, item_type="pipe"):
+    if item_type == "pipe":
+        base = {
+            "type": "pipe_data", 
+            "diameter": 100, "length": 10,
+            "material_id": seed_lookups["pipe_material_id"],
+            "groung_level_id": seed_lookups["ground_level_id"]
+        }
+    else: # valve
+        base = {
+            "type": "valve_data",
+            "diameter": 50, "quantity": 5,
+            "model_number": "V-123"
+        }
+
+    return [
+        {**base, "column_type": "balance"},
+        {**base, "column_type": "cut"}
+    ]
+
 @pytest.mark.asyncio
 async def test_create_pipe_persistence(test_client, db_session, seed_card, seed_lookups):
     """
@@ -15,16 +35,7 @@ async def test_create_pipe_persistence(test_client, db_session, seed_card, seed_
     payload = {
         "item_type": "pipe",
         "description": "Main Gas Pipe",
-        "data_entries": [
-            {
-                "column_type": "balance",
-                "type": "pipe_data", 
-                "diameter": 159.0,
-                "length": 50.5,
-                "material_id": seed_lookups["pipe_material_id"],
-                "groung_level_id": seed_lookups["ground_level_id"]
-            }
-        ]
+        "data_entries": get_valid_full_cut_entries(seed_lookups, "pipe")
     }
 
     response = await test_client.post(f"/cards/{card_id}/equipment", json=payload)
@@ -43,7 +54,7 @@ async def test_create_pipe_persistence(test_client, db_session, seed_card, seed_
     assert item_in_db.item_type == "pipe"
     assert item_in_db.card_id == card_id
     
-    assert len(item_in_db.data_entries) == 1
+    assert len(item_in_db.data_entries) == 2
     data_entry = item_in_db.data_entries[0]
     
     assert isinstance(data_entry, EquipmentData)
@@ -53,20 +64,13 @@ async def test_create_pipe_persistence(test_client, db_session, seed_card, seed_
 @pytest.mark.asyncio
 async def test_get_equipment_via_api(test_client, seed_card, seed_lookups):
     card_id = seed_card.id
+
     payload = {
         "item_type": "pipe",
-        "description": "Main Gas Pipe",
-        "data_entries": [
-            {
-                "column_type": "balance",
-                "type": "pipe_data", 
-                "diameter": 100,
-                "length": 10,
-                "material_id": seed_lookups["pipe_material_id"],
-                "groung_level_id": seed_lookups["ground_level_id"]
-            }
-        ]
+        "description": "Test Pipe",
+        "data_entries": get_valid_full_cut_entries(seed_lookups, "pipe")
     }
+    
     response = await test_client.post(f"/cards/{card_id}/equipment", json=payload)
 
     assert response.status_code == status.HTTP_200_OK, f"Error details: {response.json()}"
@@ -77,7 +81,7 @@ async def test_get_equipment_via_api(test_client, seed_card, seed_lookups):
     data = response.json()
     assert len(data) == 1
     assert data[0]["item_type"] == "pipe"
-    assert data[0]["data_entries"][0]["length"] == 10.0
+    assert data[0]["data_entries"][0]["length"] == 10
 
 @pytest.mark.asyncio
 async def test_update_equipment_data(test_client, seed_card, seed_lookups):
@@ -85,13 +89,7 @@ async def test_update_equipment_data(test_client, seed_card, seed_lookups):
     create_payload = {
         "item_type": "pipe",
         "description": "Update Test Pipe",
-        "data_entries": [{
-            "column_type": "balance",
-            "type": "pipe_data", 
-            "diameter": 100, "length": 10,
-            "material_id": seed_lookups["pipe_material_id"],
-            "groung_level_id": seed_lookups["ground_level_id"]
-        }]
+        "data_entries": get_valid_full_cut_entries(seed_lookups, "pipe")
     }
     create_resp = await test_client.post(f"/cards/{card_id}/equipment", json=create_payload)
     assert create_resp.status_code == status.HTTP_200_OK, f"Error: {create_resp.json()}"
@@ -108,12 +106,12 @@ async def test_update_equipment_data(test_client, seed_card, seed_lookups):
     assert get_resp.json()[0]["data_entries"][0]["length"] == new_length
 
 @pytest.mark.asyncio
-async def test_delete_equipment_item(test_client, seed_card):
+async def test_delete_equipment_item(test_client, seed_card, seed_lookups):
     card_id = seed_card.id
     payload = {
         "item_type": "pipe", 
         "description": "Delete Test Pipe",
-        "data_entries": []
+        "data_entries": get_valid_full_cut_entries(seed_lookups, "pipe")
     } 
     resp = await test_client.post(f"/cards/{card_id}/equipment", json=payload)
     assert resp.status_code == status.HTTP_200_OK, f"Error: {resp.json()}"
@@ -127,19 +125,12 @@ async def test_delete_equipment_item(test_client, seed_card):
     assert len(get_resp.json()) == 0
 
 @pytest.mark.asyncio
-async def test_create_valve_polymorphism(test_client, seed_card):
+async def test_create_valve_polymorphism(test_client, seed_card, seed_lookups):
     card_id = seed_card.id
     payload = {
         "item_type": "valve",
         "description": "Valve Check",
-        "data_entries": [
-            {
-                "column_type": "balance",
-                "type": "valve_data",
-                "diameter": 50,
-                "quantity": 5,
-            }
-        ]
+        "data_entries": get_valid_full_cut_entries(seed_lookups, "valve")
     }
 
     response = await test_client.post(f"/cards/{card_id}/equipment", json=payload)

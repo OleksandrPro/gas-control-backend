@@ -24,9 +24,6 @@ from inventory_system.models import (
     CutType,
     GroundLevel,
     PipeMaterial,
-    EquipmentItem,
-    PipeData,
-    ColumnType
 )
 from .constants import TestDB
 
@@ -80,18 +77,23 @@ async def test_client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, N
 
 @pytest_asyncio.fixture(scope="function")
 async def seed_lookups(db_session: AsyncSession):
-    # Card lookups
+    """
+    Creates lookup data including ALL cut types for logic testing.
+    """
     district = District(value="Test District")
     prop_type = PropertyType(value="Test Property")
     obj_name = ObjectName(value="Test Object")
     pressure = PressureType(value="High")
-    cut_type = CutType(value="Full")
     
-    # Equipment lookups
+    # Create all 3 types of cuts
+    cut_none = CutType(value="No Cut", code="none")
+    cut_full = CutType(value="Full", code="full")
+    cut_partial = CutType(value="Partial", code="partial")
+    
     ground = GroundLevel(value="Underground")
     material = PipeMaterial(value="Steel")
 
-    db_session.add_all([district, prop_type, obj_name, pressure, cut_type, ground, material])
+    db_session.add_all([district, prop_type, obj_name, pressure, cut_none, cut_full, cut_partial, ground, material])
     await db_session.commit()
 
     return {
@@ -99,10 +101,46 @@ async def seed_lookups(db_session: AsyncSession):
         "property_type_id": prop_type.id,
         "object_name_id": obj_name.id,
         "pressure_type_id": pressure.id,
-        "cut_type_id": cut_type.id,
+        # Return IDs for all cut types
+        "cut_none_id": cut_none.id,
+        "cut_full_id": cut_full.id,
+        "cut_partial_id": cut_partial.id,
+        
         "ground_level_id": ground.id,
-        "pipe_material_id": material.id
+        "pipe_material_id": material.id,
     }
+
+@pytest_asyncio.fixture(scope="function")
+async def card_factory(db_session, seed_lookups):
+    """
+    Factory to create cards with specific cut types on the fly.
+    Usage: await card_factory(cut_type_id=...)
+    """
+    async def _create_card(cut_type_id=None, inv_number_suffix=""):
+        card = Card(
+            inventory_number=f"CARD-{inv_number_suffix}",
+            inventory_number_eskd=f"ESKD-{inv_number_suffix}",
+            gas_pipeline_section="Test Section",
+            described_name="Test Description",
+            address="Test Address",
+            folder="Folder 1",
+            total_length=100.0,
+            build_date_dn=date(2023, 1, 1),
+            
+            district_id=seed_lookups["district_id"],
+            property_type_id=seed_lookups["property_type_id"],
+            object_name_id=seed_lookups["object_name_id"],
+            pressure_type_id=seed_lookups["pressure_type_id"],
+            
+            # Dynamic cut type
+            cut_type_id=cut_type_id
+        )
+        db_session.add(card)
+        await db_session.commit()
+        await db_session.refresh(card)
+        return card
+        
+    return _create_card
 
 @pytest_asyncio.fixture(scope="function")
 async def card_payload(seed_lookups):
@@ -120,42 +158,11 @@ async def card_payload(seed_lookups):
         "property_type_id": seed_lookups["property_type_id"],
         "object_name_id": seed_lookups["object_name_id"],
         "pressure_type_id": seed_lookups["pressure_type_id"],
-        "cut_type_id": seed_lookups["cut_type_id"]
+        
+        # Use 'cut_full_id' as a default value
+        "cut_type_id": seed_lookups["cut_full_id"] 
     }
 
 @pytest_asyncio.fixture(scope="function")
-async def seed_card(db_session: AsyncSession, card_payload):
-    card_data = card_payload.copy()
-    if isinstance(card_data["build_date_dn"], str):
-        card_data["build_date_dn"] = date.fromisoformat(card_data["build_date_dn"])
-
-    card = Card(**card_data)
-    db_session.add(card)
-    await db_session.commit()
-    await db_session.refresh(card)
-    return card
-
-@pytest_asyncio.fixture(scope="function")
-async def seed_card_with_equipment(db_session: AsyncSession, seed_card, seed_lookups):
-    item = EquipmentItem(
-        card_id=seed_card.id,
-        item_type="pipe",
-        description="Test Pipe"
-    )
-    db_session.add(item)
-    await db_session.commit()
-    await db_session.refresh(item)
-
-    pipe_data = PipeData(
-        item_id=item.id,
-        column_type=ColumnType.BALANCE,
-        type="pipe_data",
-        diameter=159.0,
-        length=50.5,
-        groung_level_id=seed_lookups["ground_level_id"],
-        material_id=seed_lookups["pipe_material_id"]
-    )
-    db_session.add(pipe_data)
-    await db_session.commit()
-    
-    return seed_card
+async def seed_card(card_factory, seed_lookups):
+    return await card_factory(cut_type_id=seed_lookups["cut_full_id"], inv_number_suffix="001")
