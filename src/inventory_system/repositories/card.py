@@ -1,4 +1,6 @@
 from typing import Optional
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from inventory_system.models import Card
 from utils.db_utils import DatabaseManager
 
@@ -10,6 +12,15 @@ class CardRepository:
         new_card = Card(**data)
         result = await self.manager.add_record(new_card)
         return result
+
+    async def get_by_id(self, card_id: int) -> Optional[Card]:
+        query = select(Card).where(Card.id == card_id).options(
+            selectinload(Card.cut_type)
+        )
+        return await self.manager.get_first(
+            query=query,
+            err_msg=f"Error finding card with ID {card_id}"
+        )
     
     async def update(self, card_id: int, **update_data) -> Optional[Card]:
         card = await self.manager.get_card(card_id)

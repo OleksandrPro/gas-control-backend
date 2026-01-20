@@ -1,6 +1,7 @@
 from typing import List, Annotated
 from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from inventory_system.models import (
     District, 
@@ -12,7 +13,12 @@ from inventory_system.models import (
     PressureType
 )
 
-from inventory_system.schemas import LookupItemSchema, LookupCreateSchema, LookupUpdateSchema
+from inventory_system.schemas import (
+    LookupItemSchema, 
+    LookupCreateSchema, 
+    LookupUpdateSchema,
+    CutTypeCreateSchema
+)
 from utils.db_utils import DatabaseManager
 from database import get_session
 
@@ -78,10 +84,24 @@ async def add_object_name(
 
 @lookups_router.post("/cut-types", response_model=LookupItemSchema)
 async def add_cut_type(
-    schema: LookupCreateSchema, 
+    schema: CutTypeCreateSchema,
     manager: Annotated[DatabaseManager, Depends(get_manager)]
 ):
-    return await manager.get_or_create_lookup(CutType, schema.value, "Failed to add cut type")
+    # Check if exists by 'value' OR 'code' to avoid duplicates
+    query = select(CutType).where(
+        (CutType.value == schema.value) | (CutType.code == schema.code)
+    )
+    existing = await manager.get_first(query, err_msg="Error checking cut type")
+    
+    if existing:
+        return existing
+
+    new_cut_type = CutType(
+        value=schema.value,
+        code=schema.code
+    )
+    
+    return await manager.add_record(new_cut_type, err_msg="Failed to add cut type")
 
 @lookups_router.post("/ground-levels", response_model=LookupItemSchema)
 async def add_ground_level(

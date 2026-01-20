@@ -1,7 +1,8 @@
 from .base import (
     LookupCreateSchema,
     LookupItemSchema,
-    LookupUpdateSchema
+    LookupUpdateSchema,
+    CutTypeCreateSchema
 )
 
 from .card import (

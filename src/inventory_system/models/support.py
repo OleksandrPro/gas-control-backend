@@ -26,6 +26,11 @@ class CutType(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     value: Mapped[str] = mapped_column(String(70), unique=True, nullable=False)
 
+    # Technical code for business logic ("full", "partial", "none")
+    # nullable=True is set temporarily to avoid migration errors on existing data,
+    # but logically it should be unique and required.
+    code: Mapped[str] = mapped_column(String(20), unique=True, nullable=True)
+
 
 class GroundLevel(Base):
     __tablename__ = "groung_levels"

@@ -11,3 +11,6 @@ class LookupItemSchema(BaseModel):
 
 class LookupUpdateSchema(BaseModel):
     value: str
+
+class CutTypeCreateSchema(LookupCreateSchema):
+    code: str
