@@ -54,3 +54,7 @@ class DisplayMainPageCard(BaseModel):
     cut_type_id: Optional[int] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+class CardFilter(BaseModel):
+    page: int = Field(default=1, ge=1)
+    size: int = Field(default=50, ge=1, le=100)

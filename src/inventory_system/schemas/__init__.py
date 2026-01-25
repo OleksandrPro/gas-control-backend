@@ -2,7 +2,8 @@ from .base import (
     LookupCreateSchema,
     LookupItemSchema,
     LookupUpdateSchema,
-    CutTypeCreateSchema
+    CutTypeCreateSchema,
+    PaginatedResponse
 )
 
 from .card import (
@@ -32,5 +33,6 @@ __all__ = [
     "EquipmentDataCreate",
     "EquipmentDataRead",
     "PipeDataCreate",
-    "ValveDataCreate"
+    "ValveDataCreate",
+    "PaginatedResponse"
 ]
