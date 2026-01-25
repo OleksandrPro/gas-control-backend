@@ -1,6 +1,7 @@
 from typing import Optional, List
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
+from fastapi import HTTPException
 from inventory_system.models import Card
 from utils.db_utils import DatabaseManager
 from utils.pagination import Paginator
@@ -52,7 +53,7 @@ class CardRepository:
         )
 
     async def update(self, card_id: int, **update_data) -> Optional[Card]:
-        card = await self.manager.get_card(card_id)
+        card = await self.get_card(card_id)
         
         if not card:
             return None
@@ -68,7 +69,7 @@ class CardRepository:
         )
     
     async def delete(self, card_id: int) -> bool:
-        card = await self.manager.get_card(card_id)
+        card = await self.get_card(card_id)
         
         if not card:
             return False
