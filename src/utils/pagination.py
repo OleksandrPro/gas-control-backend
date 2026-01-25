@@ -29,7 +29,7 @@ class Paginator(Generic[T]):
         return PaginatedResponse(
             items=items,
             total=total,
-            page=page,
+            current_page=page,
             size=size,
-            pages=(total + size - 1) // size if size > 0 else 0
+            total_pages=(total + size - 1) // size if size > 0 else 0
         )
