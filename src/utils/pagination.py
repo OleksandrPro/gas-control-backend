@@ -3,7 +3,9 @@ from sqlalchemy import select, func, Executable
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from inventory_system.schemas.base import PaginatedResponse
-from db_utils import DatabaseManager
+from utils.db_utils import DatabaseManager
+
+T = TypeVar("T")
 
 class Paginator(Generic[T]):
     def __init__(self, manager: DatabaseManager):

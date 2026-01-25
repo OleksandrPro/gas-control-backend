@@ -9,7 +9,8 @@ from .base import (
 from .card import (
     CardCreateSchema,
     CardUpdateSchema,
-    DisplayMainPageCard
+    DisplayMainPageCard,
+    CardFilter
 )
 
 from .equipment import (
@@ -34,5 +35,6 @@ __all__ = [
     "EquipmentDataRead",
     "PipeDataCreate",
     "ValveDataCreate",
-    "PaginatedResponse"
+    "PaginatedResponse",
+    "CardFilter"
 ]

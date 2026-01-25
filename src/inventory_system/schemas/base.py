@@ -25,3 +25,8 @@ class PaginatedResponse(BaseModel, Generic[T]):
     current_page: int
     total_pages: int
     size: int
+
+    model_config = ConfigDict(
+        from_attributes=True, 
+        arbitrary_types_allowed=True
+    )

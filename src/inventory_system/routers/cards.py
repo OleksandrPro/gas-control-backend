@@ -3,7 +3,7 @@ from typing import List, Union, Annotated
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from inventory_system.schemas import DisplayMainPageCard, CardCreateSchema, CardUpdateSchema, PaginatedResponse
+from inventory_system.schemas import DisplayMainPageCard, CardCreateSchema, CardUpdateSchema, PaginatedResponse, CardFilter
 
 from utils.db_utils import DatabaseManager
 from database import get_session
