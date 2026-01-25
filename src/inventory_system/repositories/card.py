@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from inventory_system.models import Card
@@ -13,6 +13,13 @@ class CardRepository:
         result = await self.manager.add_record(new_card)
         return result
 
+    async def get_all_cards(self) -> List[Card]:
+        query = select(Card)
+        return await self.manager.get_all(
+            query=query, 
+            err_msg=f"Error loading card table {Card.__tablename__}"
+        )
+
     async def get_by_id(self, card_id: int) -> Optional[Card]:
         query = select(Card).where(Card.id == card_id).options(
             selectinload(Card.cut_type)
@@ -22,6 +29,15 @@ class CardRepository:
             err_msg=f"Error finding card with ID {card_id}"
         )
     
+    async def get_card(self, id: int) -> Card:
+        query = select(Card).where(Card.id == id)
+        card = await self.manager.get_first(query, err_msg="Error finding card with id '{id}'")
+        
+        if not card:
+            raise HTTPException(status_code=404, detail=f"Record with id={id} not found")
+        
+        return card
+
     async def update(self, card_id: int, **update_data) -> Optional[Card]:
         card = await self.manager.get_card(card_id)
         

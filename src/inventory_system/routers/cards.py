@@ -17,15 +17,15 @@ cards_router = APIRouter(prefix="/cards", tags=["Cards"])
 async def read_all_cards(session: Annotated[AsyncSession, Depends(get_session)]):
     #TODO later add proper response_model to avoid potential mistakes with auto jsonable_encoder
     db_manager = DatabaseManager(session)
-    cards = await db_manager.get_all_cards()
-    return cards
+    repo = CardRepository(db_manager=db_manager)
+    return await repo.get_all_cards()
 
 @cards_router.get("/{id}")
 async def read_card(id: int, session: Annotated[AsyncSession, Depends(get_session)]):
     #TODO later add proper response_model to avoid potential mistakes with auto jsonable_encoder
     db_manager = DatabaseManager(session)
-    card = await db_manager.get_card(id)
-    return card
+    repo = CardRepository(db_manager=db_manager)
+    return await repo.get_card(id)
 
 @cards_router.post("")
 async def create_card(card: CardCreateSchema, session: Annotated[AsyncSession, Depends(get_session)]):
