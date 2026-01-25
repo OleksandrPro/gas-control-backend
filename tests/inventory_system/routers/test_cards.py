@@ -6,7 +6,10 @@ import json
 async def test_get_all_cards(test_client):
     response = await test_client.get("/cards")
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == []
+
+    data = response.json()
+    assert data["items"] == []
+    assert data["total"] == 0
 
 @pytest.mark.asyncio
 async def test_get_card(test_client, seed_card):    

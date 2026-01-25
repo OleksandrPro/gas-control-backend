@@ -54,14 +54,15 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
         
         # Cleanup
-        table_names = [table.name for table in Base.metadata.sorted_tables]
-        
-        if table_names:
-            tables_str = ", ".join(f'"{name}"' for name in table_names)
-            statement = text(f"TRUNCATE TABLE {tables_str} RESTART IDENTITY CASCADE;")
-            
-            await session.execute(statement)
-            await session.commit()
+        try:
+            table_names = [table.name for table in Base.metadata.sorted_tables]
+            if table_names:
+                tables_str = ", ".join(f'"{name}"' for name in table_names)
+                statement = text(f"TRUNCATE TABLE {tables_str} RESTART IDENTITY CASCADE;")
+                await session.execute(statement)
+                await session.commit()
+        except Exception:
+            await session.rollback()
 
 @pytest_asyncio.fixture(scope="function")
 async def test_client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
@@ -120,10 +121,10 @@ async def card_factory(db_session, seed_lookups):
         card = Card(
             inventory_number=f"CARD-{inv_number_suffix}",
             inventory_number_eskd=f"ESKD-{inv_number_suffix}",
-            gas_pipeline_section="Test Section",
-            described_name="Test Description",
-            address="Test Address",
-            folder="Folder 1",
+            gas_pipeline_section=f"Test Section {inv_number_suffix}",
+            described_name=f"Test Description {inv_number_suffix}",
+            address=f"Test Address {inv_number_suffix}",
+            folder=f"F{inv_number_suffix}",
             total_length=100.0,
             build_date_dn=date(2023, 1, 1),
             

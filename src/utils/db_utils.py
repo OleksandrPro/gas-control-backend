@@ -75,23 +75,6 @@ class DatabaseManager:
             logger.exception(err_msg)
             raise
 
-    async def get_all_cards(self) -> List[Card]:
-        query = select(Card)
-        
-        return await self.get_all(
-            query=query, 
-            err_msg=f"Error loading card table {Card.__tablename__}"
-        )
-    
-    async def get_card(self, id: int) -> Card:
-        query = select(Card).where(Card.id == id)
-        card = await self.get_first(query, err_msg="Error finding card with id '{id}'")
-        
-        if not card:
-            raise HTTPException(status_code=404, detail=f"Record with id={id} not found")
-        
-        return card
-
     async def get_all_lookups(self, model: Type[ModelType]) -> List[ModelType]:
         """
         Universal method to retrieve all records of a lookup table.
