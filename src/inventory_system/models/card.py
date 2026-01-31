@@ -46,7 +46,7 @@ class Card(Base):
 
     #TODO Make this as a new lookup table, as folders are going to be reusable as well (if my assumptions are correct)
     folder: Mapped[str] = mapped_column(
-        String(50), unique=True, nullable=False
+        String(50), nullable=False
     )
 
     cut_type_id: Mapped[Optional[int]] = mapped_column(ForeignKey("cut_types.id"), nullable=True)
