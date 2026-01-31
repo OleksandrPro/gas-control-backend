@@ -44,7 +44,28 @@ class CardRepository:
         return card
 
     async def list_cards(self, filter_params: CardFilter) -> PaginatedResponse[Card]:
-        query = select(Card).order_by(Card.id.desc())
+        query = select(Card)
+        
+        # Applying filters        
+        if filter_params.district_ids:
+            query = query.where(Card.district_id.in_(filter_params.district_ids))
+
+        if filter_params.property_type_ids:
+            query = query.where(Card.property_type_id.in_(filter_params.property_type_ids))
+            
+        if filter_params.folders:
+            query = query.where(Card.folder.in_(filter_params.folders))
+            
+        if filter_params.inventory_numbers:
+            query = query.where(Card.inventory_number.in_(filter_params.inventory_numbers))
+            
+        if filter_params.inventory_number_like:
+            query = query.where(Card.inventory_number.ilike(f"%{filter_params.inventory_number_like}%"))
+
+        if filter_params.cut_type_ids:
+            query = query.where(Card.cut_type_id.in_(filter_params.cut_type_ids))
+
+        query = query.order_by(Card.id.asc())
 
         return await self.paginator.paginate(
             query, 

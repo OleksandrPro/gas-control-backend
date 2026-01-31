@@ -1,6 +1,7 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, ConfigDict, Field
 from datetime import date
+from fastapi import Query
 
 class CardCreateSchema(BaseModel):
     inventory_number: str
@@ -56,5 +57,15 @@ class DisplayMainPageCard(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class CardFilter(BaseModel):
+    # Search filters
+    inventory_number_like: Optional[str] = None
+
+    inventory_numbers: Optional[List[str]] = Field(Query(None, alias="inventory_number"))
+    folders: Optional[List[str]] = Field(Query(None, alias="folder"))
+    district_ids: Optional[List[int]] = Field(Query(None, alias="district_id"))
+    property_type_ids: Optional[List[int]] = Field(Query(None, alias="property_type_id"))
+    cut_type_ids: Optional[List[int]] = Field(Query(None, alias="cut_type_id"))
+
+    # Pagination
     page: int = Field(default=1, ge=1)
     size: int = Field(default=50, ge=1, le=100)
