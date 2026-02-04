@@ -2,7 +2,7 @@ from typing import Optional, List
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from fastapi import HTTPException
-from inventory_system.models import Card
+from inventory_system.models import Card, EquipmentItem, EquipmentData, PipeData
 from utils.db_utils import DatabaseManager
 from utils.pagination import Paginator
 from inventory_system.schemas.base import PaginatedResponse
@@ -43,15 +43,23 @@ class CardRepository:
         
         return card
 
-    async def list_cards(self, filter_params: CardFilter) -> PaginatedResponse[Card]:
+    def _build_filtered_query(self, filter_params: CardFilter):
         query = select(Card)
-        
-        # Applying filters        
+
         if filter_params.district_ids:
             query = query.where(Card.district_id.in_(filter_params.district_ids))
 
         if filter_params.property_type_ids:
             query = query.where(Card.property_type_id.in_(filter_params.property_type_ids))
+            
+        if filter_params.pressure_type_ids:
+            query = query.where(Card.pressure_type_id.in_(filter_params.pressure_type_ids))
+            
+        if filter_params.object_name_ids:
+            query = query.where(Card.object_name_id.in_(filter_params.object_name_ids))
+            
+        if filter_params.cut_type_ids:
+            query = query.where(Card.cut_type_id.in_(filter_params.cut_type_ids))
             
         if filter_params.folders:
             query = query.where(Card.folder.in_(filter_params.folders))
@@ -61,9 +69,46 @@ class CardRepository:
             
         if filter_params.inventory_number_like:
             query = query.where(Card.inventory_number.ilike(f"%{filter_params.inventory_number_like}%"))
+        
+        has_pipe_filters = (
+            filter_params.pipe_material_ids or 
+            filter_params.pipe_diameter_equal or 
+            filter_params.pipe_diameter_min or 
+            filter_params.pipe_diameter_max or
+            filter_params.data_column_types
+        )
 
-        if filter_params.cut_type_ids:
-            query = query.where(Card.cut_type_id.in_(filter_params.cut_type_ids))
+        if not has_pipe_filters:
+            return query
+
+        query = query.join(Card.equipment_list)
+        query = query.join(EquipmentItem.data_entries)
+        query = query.join(PipeData)
+        
+        if filter_params.pipe_material_ids:
+            query = query.where(PipeData.material_id.in_(filter_params.pipe_material_ids))
+        
+        if filter_params.groung_level_ids:
+            query = query.where(PipeData.groung_level_id.in_(filter_params.groung_level_ids))
+
+        if filter_params.pipe_diameter_equal is not None:
+            query = query.where(PipeData.diameter == filter_params.pipe_diameter_equal)
+
+        if filter_params.pipe_diameter_min is not None:
+            query = query.where(PipeData.diameter >= filter_params.pipe_diameter_min)
+            
+        if filter_params.pipe_diameter_max is not None:
+            query = query.where(PipeData.diameter <= filter_params.pipe_diameter_max)
+
+        if filter_params.data_column_types:
+            query = query.where(EquipmentData.column_type.in_(filter_params.data_column_types))
+
+        query = query.distinct()
+
+        return query
+
+    async def list_cards(self, filter_params: CardFilter) -> PaginatedResponse[Card]:
+        query = self._build_filtered_query(filter_params)
 
         query = query.order_by(Card.id.asc())
 
