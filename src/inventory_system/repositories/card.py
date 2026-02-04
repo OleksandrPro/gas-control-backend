@@ -1,5 +1,5 @@
 from typing import Optional, List
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from fastapi import HTTPException
 from inventory_system.models import Card, EquipmentItem, EquipmentData, PipeData
@@ -43,7 +43,7 @@ class CardRepository:
         
         return card
 
-    def _build_filtered_query(self, filter_params: CardFilter):
+    def _build_filtered_query(self, filter_params: CardFilter, force_pipe_joins: bool = False):
         query = select(Card)
 
         if filter_params.district_ids:
@@ -71,6 +71,7 @@ class CardRepository:
             query = query.where(Card.inventory_number.ilike(f"%{filter_params.inventory_number_like}%"))
         
         has_pipe_filters = (
+            force_pipe_joins or 
             filter_params.pipe_material_ids or 
             filter_params.pipe_diameter_equal or 
             filter_params.pipe_diameter_min or 
@@ -103,12 +104,12 @@ class CardRepository:
         if filter_params.data_column_types:
             query = query.where(EquipmentData.column_type.in_(filter_params.data_column_types))
 
-        query = query.distinct()
-
         return query
 
     async def list_cards(self, filter_params: CardFilter) -> PaginatedResponse[Card]:
         query = self._build_filtered_query(filter_params)
+
+        query = query.distinct()
 
         query = query.order_by(Card.id.asc())
 
@@ -117,6 +118,22 @@ class CardRepository:
             page=filter_params.page, 
             size=filter_params.size
         )
+
+    async def get_pipes_length_sum(self, filter_params: CardFilter) -> dict:
+        query = self._build_filtered_query(filter_params, force_pipe_joins=True)
+        
+        query = query.with_only_columns(
+            func.coalesce(func.sum(PipeData.length), 0),
+            func.count(Card.id.distinct())
+        )
+
+        result = await self.manager.session.execute(query)
+        total_length, count = result.one()
+        
+        return {
+            "total_length": total_length,
+            "count_cards": count
+        }
 
     async def update(self, card_id: int, **update_data) -> Optional[Card]:
         card = await self.get_card(card_id)

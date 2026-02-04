@@ -22,6 +22,10 @@ from .equipment import (
     ValveDataCreate
 )
 
+from .analytics import (
+    PipeLengthStats
+)
+
 __all__ = [
     "LookupCreateSchema",
     "LookupItemSchema",
@@ -36,5 +40,6 @@ __all__ = [
     "PipeDataCreate",
     "ValveDataCreate",
     "PaginatedResponse",
-    "CardFilter"
+    "CardFilter",
+    "PipeLengthStats"
 ]
