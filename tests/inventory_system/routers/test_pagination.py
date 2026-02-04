@@ -17,7 +17,8 @@ async def test_pagination_logic(test_client, card_factory, seed_lookups):
     assert data_p1["current_page"] == 1
     assert data_p1["total_pages"] == 2
     assert len(data_p1["items"]) == 10
-    assert data_p1["items"][0]["inventory_number"] == "CARD-PAG-14"
+    assert data_p1["items"][0]["inventory_number"] == "CARD-PAG-0" 
+    assert data_p1["items"][9]["inventory_number"] == "CARD-PAG-9"
 
     response_p2 = await test_client.get("/cards?page=2&size=10")
     assert response_p2.status_code == status.HTTP_200_OK
@@ -25,7 +26,7 @@ async def test_pagination_logic(test_client, card_factory, seed_lookups):
     
     assert data_p2["current_page"] == 2
     assert len(data_p2["items"]) == 5
-    assert data_p2["items"][0]["inventory_number"] == "CARD-PAG-4"
+    assert data_p2["items"][0]["inventory_number"] == "CARD-PAG-10"
 
 @pytest.mark.asyncio
 async def test_pagination_empty_page(test_client):
