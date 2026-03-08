@@ -9,7 +9,8 @@ class CardCreateSchema(BaseModel):
     gas_pipeline_section: str
     described_name: str
     build_date_dn: date
-    total_length: float
+    total_length_balance: float
+    total_length_fact: float
     folder: str
     address: str
 
@@ -29,7 +30,8 @@ class CardUpdateSchema(BaseModel):
     address: Optional[str] = None
     folder: Optional[str] = None
     described_name: Optional[str] = None
-    total_length: Optional[float] = None
+    total_length_balance: Optional[float] = None
+    total_length_fact: Optional[float] = None
     build_date_dn: Optional[date] = None
     
     pressure_type_id: Optional[int] = None
@@ -47,7 +49,8 @@ class DisplayMainPageCard(BaseModel):
     described_name: str
     build_date_dn: date
     property_type_id: int
-    total_length: float
+    total_length_balance: float
+    total_length_fact: float
     district_id: int
     object_name_id: int
     address: str

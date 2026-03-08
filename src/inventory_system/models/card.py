@@ -32,7 +32,8 @@ class Card(Base):
         DateTime(timezone=True), nullable=False
     )
 
-    total_length: Mapped[float] = mapped_column(Float, nullable=False)
+    total_length_balance: Mapped[float] = mapped_column(Float, nullable=False)
+    total_length_fact: Mapped[float] = mapped_column(Float, nullable=True)
 
     district_id: Mapped[int] = mapped_column(ForeignKey("districts.id"))
     district: Mapped["District"] = relationship()
