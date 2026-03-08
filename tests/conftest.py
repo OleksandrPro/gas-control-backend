@@ -167,3 +167,79 @@ async def card_payload(seed_lookups):
 @pytest_asyncio.fixture(scope="function")
 async def seed_card(card_factory, seed_lookups):
     return await card_factory(cut_type_id=seed_lookups["cut_full_id"], inv_number_suffix="001")
+
+@pytest_asyncio.fixture(scope="function")
+async def analytics_data(test_client, card_factory, seed_lookups):
+    """
+    Setup complex data for analytics tests.
+    Creates 3 cards with different pipe configurations using the API.
+    """
+    # Helper to add pipe via API
+    async def _add_pipe(card_id, material_id, diameter, length, column_type="balance"):
+        entries = []
+        entries.append({
+            "column_type": "balance",
+            "type": "pipe_data",
+            "diameter": diameter,
+            "length": length if column_type == "balance" else 0.0,
+            "material_id": material_id,
+            "groung_level_id": seed_lookups["ground_level_id"]
+        })
+        entries.append({
+            "column_type": "fact",
+            "type": "pipe_data",
+            "diameter": diameter,
+            "length": length if column_type == "fact" else 0.0,
+            "material_id": material_id,
+            "groung_level_id": seed_lookups["ground_level_id"]
+        })
+        
+        payload = {
+            "item_type": "pipe",
+            "description": f"Pipe d{diameter}",
+            "data_entries": entries
+        }
+        resp = await test_client.post(f"/cards/{card_id}/equipment", json=payload)
+        assert resp.status_code == 200
+
+    mat_steel_id = seed_lookups["pipe_material_id"]
+    
+    # Create Plastic material
+    resp = await test_client.post("/dictionaries/pipe-materials", json={"value": "Plastic"})
+    mat_plastic_id = resp.json()["id"]
+
+    dist_1 = seed_lookups["district_id"]
+    
+    # Create District 2
+    resp = await test_client.post("/dictionaries/districts", json={"value": "District 2"})
+    dist_2 = resp.json()["id"]
+
+    cut_none = seed_lookups["cut_none_id"]
+
+    len_c1 = 50.0
+    len_c2 = 30.0
+    len_c3 = 20.0
+
+    # Card 1: Dist 1. Pipe: Steel, d=100, L=50 (in Balance)
+    c1 = await card_factory(inv_number_suffix="A1", cut_type_id=cut_none)
+    await _add_pipe(c1.id, mat_steel_id, 100.0, len_c1, "balance")
+
+    # Card 2: Dist 1. Pipe: Plastic, d=50, L=30 (in Fact)
+    c2 = await card_factory(inv_number_suffix="A2", cut_type_id=cut_none)
+    await _add_pipe(c2.id, mat_plastic_id, 50.0, len_c2, "fact")
+
+    # Card 3: Dist 2. Pipe: Steel, d=100, L=20 (in Balance)
+    c3 = await card_factory(inv_number_suffix="B1", cut_type_id=cut_none)
+    await test_client.patch(f"/cards/{c3.id}", json={"district_id": dist_2})
+    await _add_pipe(c3.id, mat_steel_id, 100.0, len_c3, "balance")
+    
+    return {
+        "mat_steel_id": mat_steel_id,
+        "mat_plastic_id": mat_plastic_id,
+        "dist_1": dist_1,
+        "dist_2": dist_2,
+        "len_c1": len_c1,
+        "len_c2": len_c2,
+        "len_c3": len_c3,
+        "total_cards": 3
+    }

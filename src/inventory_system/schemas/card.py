@@ -63,8 +63,18 @@ class CardFilter(BaseModel):
     inventory_numbers: Optional[List[str]] = Field(Query(None, alias="inventory_number"))
     folders: Optional[List[str]] = Field(Query(None, alias="folder"))
     district_ids: Optional[List[int]] = Field(Query(None, alias="district_id"))
+    pressure_type_ids: Optional[List[int]] = Field(Query(None, alias="pressure_type_id"))
     property_type_ids: Optional[List[int]] = Field(Query(None, alias="property_type_id"))
+    object_name_ids: Optional[List[int]] = Field(Query(None, alias="object_name_id"))
     cut_type_ids: Optional[List[int]] = Field(Query(None, alias="cut_type_id"))
+
+    pipe_material_ids: Optional[List[int]] = Field(Query(None, alias="pipe_material_id"))
+    pipe_diameter_equal: Optional[float] = None
+    pipe_diameter_min: Optional[float] = None
+    pipe_diameter_max: Optional[float] = None
+    groung_level_ids: Optional[List[int]] = Field(Query(None, alias="groung_level_id"))
+
+    data_column_types: Optional[List[str]] = Field(Query(None, alias="column_type"))
 
     # Pagination
     page: int = Field(default=1, ge=1)
