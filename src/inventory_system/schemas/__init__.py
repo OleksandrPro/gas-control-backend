@@ -19,7 +19,10 @@ from .equipment import (
     EquipmentDataCreate,
     EquipmentDataRead,
     PipeDataCreate,
-    ValveDataCreate
+    ValveDataCreate,
+    PipeDataUpdate,
+    ValveDataUpdate,
+    EquipmentItemUpdate
 )
 
 from .analytics import (
@@ -41,5 +44,8 @@ __all__ = [
     "ValveDataCreate",
     "PaginatedResponse",
     "CardFilter",
-    "PipeLengthStats"
+    "PipeLengthStats",
+    "PipeDataUpdate",
+    "ValveDataUpdate",
+    "EquipmentItemUpdate"
 ]

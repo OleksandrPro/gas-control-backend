@@ -64,6 +64,19 @@ class EquipmentRepository:
         
         return await self.manager.add_record(entry, err_msg="Failed to update data entry")
 
+    async def update_item(self, item_id: int, **update_data) -> Optional[EquipmentItem]:
+        query = select(EquipmentItem).where(EquipmentItem.id == item_id)
+        item = await self.manager.get_first(query, err_msg=f"Item {item_id} not found")
+        
+        if not item:
+            return None
+            
+        for key, value in update_data.items():
+            if hasattr(item, key):
+                setattr(item, key, value)
+                
+        return await self.manager.add_record(item, err_msg="Failed to update equipment item")
+
     async def delete_item(self, item_id: int) -> bool:
         """
         Deletes the Equipment Item container. 

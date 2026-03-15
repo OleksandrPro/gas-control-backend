@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 
 from inventory_system.repositories.equipment import EquipmentRepository
 from inventory_system.repositories.card import CardRepository
-from inventory_system.schemas import EquipmentItemCreate, EquipmentDataCreate
+from inventory_system.schemas import EquipmentItemCreate, EquipmentDataCreate, EquipmentItemUpdate
 from inventory_system.models import ColumnType
 
 # Enum that matches 'code' column in 'cut_types' table
@@ -42,6 +42,36 @@ class EquipmentService:
             await self.equipment_repo.add_data_entry(item.id, entry)
             
         return await self.equipment_repo.get_item_by_id(item.id)
+    
+    async def update_equipment_item(self, item_id: int, update_data: EquipmentItemUpdate):
+        item = await self.equipment_repo.get_item_by_id(item_id)
+        if not item:
+            raise HTTPException(status_code=404, detail="Equipment item not found")
+
+        if update_data.description is not None:
+            await self.equipment_repo.update_item(item_id, description=update_data.description)
+
+        if update_data.data_entries is not None:
+            card = await self.card_repo.get_by_id(item.card_id)
+            cut_code = card.cut_type.code if card.cut_type and card.cut_type.code else CutTypeCode.NONE
+            self._validate_entries_structure(cut_code, update_data.data_entries)
+
+            existing_ids = {entry.id for entry in item.data_entries}
+            incoming_ids = set()
+
+            for entry_schema in update_data.data_entries:
+                if entry_schema.id and entry_schema.id in existing_ids:
+                    update_dict = entry_schema.model_dump(exclude={'id', 'type'})
+                    await self.equipment_repo.update_data_entry(entry_schema.id, **update_dict)
+                    incoming_ids.add(entry_schema.id)
+                else:
+                    await self.equipment_repo.add_data_entry(item_id, entry_schema)
+
+            to_delete_ids = existing_ids - incoming_ids
+            for del_id in to_delete_ids:
+                await self.equipment_repo.delete_data_entry(del_id)
+
+        return await self.equipment_repo.get_item_by_id(item_id)
 
     def _validate_entries_structure(self, cut_code: str, entries: List[EquipmentDataCreate]):
         """
@@ -51,11 +81,11 @@ class EquipmentService:
         input_types = [entry.column_type for entry in entries]
         unique_types = set(input_types)
 
-        # Check for duplicates (e.g., two BALANCE entries for one item are not allowed)
-        if len(input_types) != len(unique_types):
+        # Check constraints (e.g., only one BALANCE entry for one item is allowed, entry can have multiple FACTs and CUTs)
+        if input_types.count(ColumnType.BALANCE) > 1:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Duplicate column types provided for a single equipment item."
+                detail="Only one BALANCE entry is allowed per equipment item."
             )
 
         required_types: Set[str] = set()

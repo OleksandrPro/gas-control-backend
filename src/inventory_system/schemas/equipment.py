@@ -36,6 +36,18 @@ class EquipmentItemCreate(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class PipeDataUpdate(PipeDataCreate):
+    id: Optional[int] = None
+
+class ValveDataUpdate(ValveDataCreate):
+    id: Optional[int] = None
+
+EquipmentDataUpdateType = Union[PipeDataUpdate, ValveDataUpdate]
+
+class EquipmentItemUpdate(BaseModel):
+    description: Optional[str] = None
+    data_entries: Optional[List[EquipmentDataUpdateType]] = None 
+
 class PipeDataRead(PipeDataCreate):
     id: int
 

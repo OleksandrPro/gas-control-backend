@@ -12,7 +12,8 @@ from database import get_session
 from inventory_system.schemas import (
     EquipmentItemCreate, 
     EquipmentItemRead,
-    EquipmentDataCreate
+    EquipmentDataCreate,
+    EquipmentItemUpdate
 )
 
 
@@ -58,6 +59,14 @@ async def update_equipment_data(
         raise HTTPException(status_code=404, detail="Data entry not found")
         
     return result
+
+@equipment_router.patch("/equipment-items/{item_id}", response_model=EquipmentItemRead)
+async def update_equipment_item(
+    item_id: int,
+    update_data: EquipmentItemUpdate,
+    service: Annotated[EquipmentService, Depends(get_equipment_service)]
+):
+    return await service.update_equipment_item(item_id, update_data)
 
 # Delete Equipment Data Entry Endpoint
 # This deletes specific data (e.g. removes "Fact" data, keeping "Balance")
