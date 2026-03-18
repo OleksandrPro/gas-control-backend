@@ -46,6 +46,10 @@ class CardService:
 
         for item in equipment_items:
             source_entries = [e for e in item.data_entries if e.column_type == source_column]
+
+            cut_entries = [e for e in item.data_entries if e.column_type == ColumnType.CUT]
+            for cut_entry in cut_entries:
+                await self.equipment_repo.delete_data_entry(cut_entry.id)
             
             for source_entry in source_entries:
                 if source_entry.type == "pipe_data":
