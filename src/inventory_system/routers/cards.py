@@ -9,9 +9,17 @@ from utils.db_utils import DatabaseManager
 from database import get_session
 
 from inventory_system.repositories.card import CardRepository
+from inventory_system.repositories.equipment import EquipmentRepository
+from inventory_system.services.card import CardService
 
 
 cards_router = APIRouter(prefix="/cards", tags=["Cards"])
+
+def get_card_service(session: AsyncSession = Depends(get_session)) -> CardService:
+    db_manager = DatabaseManager(session)
+    card_repo = CardRepository(db_manager)
+    equipment_repo = EquipmentRepository(db_manager)
+    return CardService(card_repo, equipment_repo)
 
 @cards_router.get("", response_model=PaginatedResponse[DisplayMainPageCard])
 async def read_all_cards(session: Annotated[AsyncSession, Depends(get_session)], filter_params: Annotated[CardFilter, Depends()]):
@@ -34,18 +42,8 @@ async def create_card(card: CardCreateSchema, session: Annotated[AsyncSession, D
     return await repo.create(**card.model_dump())
 
 @cards_router.patch("/{id}")
-async def update_card(id: int, new_data: CardUpdateSchema, session: Annotated[AsyncSession, Depends(get_session)]):
-    db_manager = DatabaseManager(session)
-    repo = CardRepository(db_manager=db_manager)
-    
-    update_data = new_data.model_dump(exclude_unset=True)
-
-    updated_card = await repo.update(id, **update_data)
-
-    if not updated_card:
-        raise HTTPException(status_code=404, detail="Card wasn't found")
-        
-    return updated_card
+async def update_card(id: int, new_data: CardUpdateSchema, card_service: Annotated[CardService, Depends(get_card_service)]):
+    return await card_service.update_card(id, new_data)
 
 @cards_router.delete("/{card_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_card(

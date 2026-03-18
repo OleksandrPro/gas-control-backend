@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Literal
 from pydantic import BaseModel, ConfigDict, Field
 from datetime import date
 from fastapi import Query
@@ -39,6 +39,8 @@ class CardUpdateSchema(BaseModel):
     district_id: Optional[int] = None
     object_name_id: Optional[int] = None
     cut_type_id: Optional[int] = None
+
+    cut_column_data_source: Optional[Literal["balance", "fact"]] = None
 
 class DisplayMainPageCard(BaseModel):
     id: int
