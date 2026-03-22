@@ -14,11 +14,13 @@ from inventory_system.exceptions.equipment import (
     EquipmentItemUpdateError,
     EquipmentRecordUpdateError
 )
+from inventory_system.exceptions.lookups import LookupRecordNotFoundError
 
 EXCEPTION_STATUS_MAP = {
     CardNotFoundError: status.HTTP_404_NOT_FOUND,
     EquipmentItemNotFoundError: status.HTTP_404_NOT_FOUND,
     EquipmentRecordNotFoundError: status.HTTP_404_NOT_FOUND,
+    LookupRecordNotFoundError: status.HTTP_404_NOT_FOUND,
     
     EquipmentMigrationError: status.HTTP_409_CONFLICT,
     
