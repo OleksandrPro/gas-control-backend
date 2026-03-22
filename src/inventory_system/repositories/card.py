@@ -7,6 +7,7 @@ from utils.db_utils import DatabaseManager
 from utils.pagination import Paginator
 from inventory_system.schemas.base import PaginatedResponse
 from inventory_system.schemas.card import Card, CardFilter
+from inventory_system.schemas.analytics import PipeLengthStats
 
 class CardRepository(ICardRepository):
     def __init__(self, db_manager: DatabaseManager):
@@ -146,10 +147,10 @@ class CardRepository(ICardRepository):
         result = await self.manager.session.execute(query)
         total_length, count = result.one()
         
-        return {
-            "total_length": total_length,
-            "count_cards": count
-        }
+        return PipeLengthStats(
+            total_length=total_length,
+            count_cards=count
+        )
 
     async def update(self, card_id: int, **update_data) -> Optional[Card]:
         card = await self._get_card_orm(card_id)

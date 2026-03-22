@@ -20,6 +20,7 @@ from inventory_system.schemas import (
     CutTypeCreateSchema
 )
 from utils.db_utils import DatabaseManager
+from inventory_system.repositories.lookups import LookupRepository
 from database import get_session
 
 lookups_router = APIRouter(prefix="/dictionaries", tags=["Lookups"])

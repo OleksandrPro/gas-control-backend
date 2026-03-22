@@ -1,5 +1,5 @@
-from typing import Protocol, Optional
-from inventory_system.schemas import Card 
+from typing import Protocol, Optional, List
+from inventory_system.schemas import Card, CardFilter, PaginatedResponse, PipeLengthStats
 
 
 class ICardRepository(Protocol):
