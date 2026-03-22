@@ -1,12 +1,11 @@
 from enum import Enum
 from inventory_system.schemas import CardCreateSchema, CardUpdateSchema, CardFilter, PaginatedResponse
 from inventory_system.schemas import PipeDataCreate, ValveDataCreate
-from inventory_system.models import ColumnType
 from inventory_system.ports.card import ICardRepository
 from inventory_system.ports.equipment import IEquipmentRepository
 from inventory_system.exceptions.card import CardCreationError, CardNotFoundError, CardUpdateError
 from inventory_system.exceptions.equipment import EquipmentMigrationError, EquipmentRecordNotFoundError, UnknownEquipmentTypeError
-from ..constants import CutTypeCode
+from ..constants import CutTypeCode, ColumnType
 
 
 class CardService:
@@ -52,9 +51,7 @@ class CardService:
             if not fresh_card:
                 raise CardNotFoundError(card_id)
 
-            new_cut_type = fresh_card.cut_type if fresh_card else None
-            
-            if new_cut_type and new_cut_type.code == CutTypeCode.FULL:
+            if fresh_card.cut_code == CutTypeCode.FULL:
                 await self._migrate_to_full_cut(
                     card_id, 
                     source_column=update_data.cut_column_data_source
@@ -63,44 +60,57 @@ class CardService:
         return updated_card
 
     async def _migrate_to_full_cut(self, card_id: int, source_column: str):
-        try: 
+        try:
             equipment_items = await self.equipment_repo.get_card_equipment_items(card_id)
 
-            for item in equipment_items:
-                source_entries = [e for e in item.data_entries if e.column_type == source_column]
+            target_col = str(getattr(source_column, 'value', source_column)).upper()
 
-                cut_entries = [e for e in item.data_entries if e.column_type == ColumnType.CUT]
+            for item in equipment_items:
+                source_entries = [
+                    e for e in item.data_entries 
+                    if str(getattr(e.column_type, 'value', e.column_type)).upper() == target_col
+                ]
+
+                cut_entries = [
+                    e for e in item.data_entries 
+                    if str(getattr(e.column_type, 'value', e.column_type)).upper() == "CUT"
+                ]
                 for cut_entry in cut_entries:
                     deleted = await self.equipment_repo.delete_equipment_record(cut_entry.id)
                     if not deleted:
-                        raise EquipmentRecordNotFoundError(cut_entry.id)
+                        raise EquipmentRecordNotFoundError(f"Failed to delete old CUT: {cut_entry.id}")
                 
                 for source_entry in source_entries:
                     entry_type = source_entry.type
-                    if entry_type== "pipe_data":
-                        schema_obj = PipeDataCreate.model_validate(source_entry)
+                    
+                    entry_dict = source_entry.model_dump(exclude={"id"})
+                    entry_dict["column_type"] = "CUT" 
+
+                    if entry_type == "pipe_data":
+                        new_cut_schema = PipeDataCreate(**entry_dict)
                     elif entry_type == "valve_data":
-                        schema_obj = ValveDataCreate.model_validate(source_entry)
+                        new_cut_schema = ValveDataCreate(**entry_dict)
                     else:
                         raise UnknownEquipmentTypeError(entry_type)
-                    
-                    new_cut_schema = schema_obj.model_copy(update={"column_type": ColumnType.CUT})
                     
                     added_record = await self.equipment_repo.add_equipment_record(item.id, new_cut_schema)
 
                     if not added_record:
-                        raise EquipmentMigrationError(card_id)
+                        raise EquipmentMigrationError(f"DB failed to insert CUT for item {item.id}")
 
-                fact_entries = [e for e in item.data_entries if e.column_type == ColumnType.FACT]
+                fact_entries = [
+                    e for e in item.data_entries 
+                    if str(getattr(e.column_type, 'value', e.column_type)).upper() == "FACT"
+                ]
                 for fact in fact_entries:
                     deleted = await self.equipment_repo.delete_equipment_record(fact.id)
                     if not deleted:
-                        raise EquipmentRecordNotFoundError(fact.id)
-        
+                        raise EquipmentRecordNotFoundError(f"Failed to delete old FACT: {fact.id}")
+                        
         except (EquipmentRecordNotFoundError, UnknownEquipmentTypeError) as e:
-            raise EquipmentMigrationError(card_id) from e
+            raise EquipmentMigrationError(f"Migration failed for card {card_id}: {str(e)}") from e
         except Exception as e:
-            raise EquipmentMigrationError(card_id) from e
+            raise EquipmentMigrationError(f"Unexpected error during migration for card {card_id}") from e
     
     async def delete_card(self, card_id: int):
         deleted = await self.card_repo.delete(card_id)
