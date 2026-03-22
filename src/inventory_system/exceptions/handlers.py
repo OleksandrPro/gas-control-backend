@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
 from inventory_system.exceptions.base import InventorySystemError
-from inventory_system.exceptions.card import CardNotFoundError, CardUpdateError
+from inventory_system.exceptions.card import CardCreationError, CardNotFoundError, CardUpdateError
 from inventory_system.exceptions.equipment import (
     EquipmentMigrationError,
     EquipmentItemNotFoundError,
@@ -22,6 +22,7 @@ EXCEPTION_STATUS_MAP = {
     
     EquipmentMigrationError: status.HTTP_409_CONFLICT,
     
+    CardCreationError: status.HTTP_400_BAD_REQUEST,
     CardUpdateError: status.HTTP_400_BAD_REQUEST,
     UnknownEquipmentTypeError: status.HTTP_400_BAD_REQUEST,
     DuplicateBalanceEntryError: status.HTTP_400_BAD_REQUEST,

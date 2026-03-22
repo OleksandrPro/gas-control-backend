@@ -1,7 +1,6 @@
 from typing import Optional, List
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
-from fastapi import HTTPException
 from inventory_system.ports.card import ICardRepository
 from inventory_system.models import Card as CardModel, EquipmentItem, EquipmentData, PipeData
 from utils.db_utils import DatabaseManager
@@ -53,7 +52,7 @@ class CardRepository(ICardRepository):
             return Card.model_validate(db_model)
         return None
     
-    async def get_card(self, id: int) -> Card:
+    async def get_card(self, id: int) -> Optional[Card]:
         db_model = await self._get_card_orm(id)
         
         if db_model:

@@ -4,7 +4,7 @@ from inventory_system.schemas import PipeDataCreate, ValveDataCreate
 from inventory_system.models import ColumnType
 from inventory_system.ports.card import ICardRepository
 from inventory_system.ports.equipment import IEquipmentRepository
-from inventory_system.exceptions.card import CardNotFoundError, CardUpdateError
+from inventory_system.exceptions.card import CardCreationError, CardNotFoundError, CardUpdateError
 from inventory_system.exceptions.equipment import EquipmentMigrationError, EquipmentRecordNotFoundError, UnknownEquipmentTypeError
 
 class CutTypeCode(str, Enum):
@@ -16,6 +16,21 @@ class CardService:
     def __init__(self, card_repo: ICardRepository, equipment_repo: IEquipmentRepository):
         self.card_repo = card_repo
         self.equipment_repo = equipment_repo
+    
+    async def get_card(self, card_id: int):
+        card = await self.card_repo.get_card(card_id)
+        if not card:
+            raise CardNotFoundError(card_id)
+        return card
+
+    async def list_cards(self, filter_params: CardFilter) -> PaginatedResponse:
+        return await self.card_repo.list_cards(filter_params)
+
+    async def create_card(self, card_data: CardCreateSchema):
+        card = await self.card_repo.create(**card_data.model_dump())
+        if not card:
+            raise CardCreationError("Failed to create new card")
+        return card
 
     async def update_card(self, card_id: int, update_data: CardUpdateSchema):
         current_card = await self.card_repo.get_by_id(card_id)
@@ -89,3 +104,8 @@ class CardService:
             raise EquipmentMigrationError(card_id) from e
         except Exception as e:
             raise EquipmentMigrationError(card_id) from e
+    
+    async def delete_card(self, card_id: int):
+        deleted = await self.card_repo.delete(card_id)
+        if not deleted:
+            raise CardNotFoundError(card_id)
