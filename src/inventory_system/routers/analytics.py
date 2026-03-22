@@ -10,12 +10,12 @@ from database import get_session
 
 analytics_router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
+def get_card_repo(session: AsyncSession = Depends(get_session)) -> CardRepository:
+    return CardRepository(DatabaseManager(session))
+
 @analytics_router.get("/pipes-length", response_model=PipeLengthStats)
 async def get_pipes_length_stats(
     filter_params: Annotated[CardFilter, Depends()], 
-    session: Annotated[AsyncSession, Depends(get_session)]
+    repo: Annotated[CardRepository, Depends(get_card_repo)]
 ):
-    db_manager = DatabaseManager(session)
-    repo = CardRepository(db_manager)
-    
     return await repo.get_pipes_length_sum(filter_params)
