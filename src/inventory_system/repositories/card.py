@@ -19,7 +19,7 @@ class CardRepository(ICardRepository):
         db_model = await self.manager.add_record(new_card)
 
         if db_model:
-            return Card.model_validate(db_model)
+            return await self.get_by_id(db_model.id)
         return None
 
     async def get_all_cards(self) -> List[Card]:
@@ -165,7 +165,7 @@ class CardRepository(ICardRepository):
         )
 
         if db_model:
-            return Card.model_validate(db_model)
+            return await self.get_by_id(db_model.id)
         return None
     
     async def delete(self, card_id: int) -> bool:
