@@ -3,7 +3,7 @@ from typing import List, Set
 
 from inventory_system.ports.card import ICardRepository
 from inventory_system.ports.equipment import IEquipmentRepository
-from inventory_system.schemas import EmptyEquipmentItemCreate, EquipmentItemCreate, EquipmentDataCreate, EquipmentItemUpdate
+from inventory_system.schemas import EquipmentItemCreate, EquipmentDataCreate, EquipmentItemUpdate
 from inventory_system.models import ColumnType
 from inventory_system.exceptions.card import CardNotFoundError, CardUpdateError
 from inventory_system.exceptions.equipment import (

@@ -14,7 +14,7 @@ from .card import (
 )
 
 from .equipment import (
-    EmptyEquipmentItemCreate,
+    EquipmentItemBase,
     EquipmentItemCreate,
     EquipmentItemRead,
     EquipmentDataCreate,
@@ -37,7 +37,7 @@ __all__ = [
     "CardCreateSchema",
     "CardUpdateSchema",
     "Card",
-    "EmptyEquipmentItemCreate",
+    "EquipmentItemBase",
     "EquipmentItemCreate",
     "EquipmentItemRead",
     "EquipmentDataCreate",

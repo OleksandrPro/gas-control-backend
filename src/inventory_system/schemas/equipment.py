@@ -27,13 +27,12 @@ class ValveDataCreate(EquipmentDataBase):
 # Union for creating data
 EquipmentDataCreate = Union[PipeDataCreate, ValveDataCreate]
 
-class EmptyEquipmentItemCreate(BaseModel):
-    card_id: int
+class EquipmentItemBase(BaseModel):
     item_type: str # "pipe" or "valve"
     description: str
 
 # Item Schema (Container)
-class EquipmentItemCreate(EmptyEquipmentItemCreate):
+class EquipmentItemCreate(BaseModel):
     data_entries: List[EquipmentDataCreate]
 
     model_config = ConfigDict(from_attributes=True)
@@ -61,11 +60,9 @@ EquipmentDataRead = Annotated[
     Field(discriminator='type')
 ]
 
-class EquipmentItemRead(BaseModel):
+class EquipmentItemRead(EquipmentItemBase):
     id: int
     card_id: int
-    item_type: str
-    description: str
     data_entries: List[EquipmentDataRead]
 
     model_config = ConfigDict(from_attributes=True)
