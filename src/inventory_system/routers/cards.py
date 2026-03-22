@@ -45,16 +45,7 @@ async def create_card(card: CardCreateSchema, session: Annotated[AsyncSession, D
 
 @cards_router.patch("/{id}")
 async def update_card(id: int, new_data: CardUpdateSchema, card_service: Annotated[CardService, Depends(get_card_service)]):
-    try:
-        updated_card = await card_service.update_card(id, new_data)
-        return updated_card
-    except CardNotFoundError as e:  
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except CardUpdateError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    except EquipmentMigrationError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
-
+    return await card_service.update_card(id, new_data)
 
 @cards_router.delete("/{card_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_card(
