@@ -27,11 +27,13 @@ class ValveDataCreate(EquipmentDataBase):
 # Union for creating data
 EquipmentDataCreate = Union[PipeDataCreate, ValveDataCreate]
 
-
-# Item Schema (Container)
-class EquipmentItemCreate(BaseModel):
+class EmptyEquipmentItemCreate(BaseModel):
+    card_id: int
     item_type: str # "pipe" or "valve"
     description: str
+
+# Item Schema (Container)
+class EquipmentItemCreate(EmptyEquipmentItemCreate):
     data_entries: List[EquipmentDataCreate]
 
     model_config = ConfigDict(from_attributes=True)

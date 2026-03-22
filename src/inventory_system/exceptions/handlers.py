@@ -7,7 +7,12 @@ from inventory_system.exceptions.equipment import (
     EquipmentMigrationError,
     EquipmentItemNotFoundError,
     EquipmentRecordNotFoundError,
-    UnknownEquipmentTypeError
+    UnknownEquipmentTypeError,
+    DuplicateBalanceEntryError,
+    UnknownCutTypeError,
+    EquipmentStructureViolationError,
+    EquipmentItemUpdateError,
+    EquipmentRecordUpdateError
 )
 
 EXCEPTION_STATUS_MAP = {
@@ -19,6 +24,11 @@ EXCEPTION_STATUS_MAP = {
     
     CardUpdateError: status.HTTP_400_BAD_REQUEST,
     UnknownEquipmentTypeError: status.HTTP_400_BAD_REQUEST,
+    DuplicateBalanceEntryError: status.HTTP_400_BAD_REQUEST,
+    UnknownCutTypeError: status.HTTP_400_BAD_REQUEST,
+    EquipmentStructureViolationError: status.HTTP_400_BAD_REQUEST,
+    EquipmentItemUpdateError: status.HTTP_400_BAD_REQUEST,
+    EquipmentRecordUpdateError: status.HTTP_400_BAD_REQUEST,
 }
 
 def register_exception_handlers(app: FastAPI):
