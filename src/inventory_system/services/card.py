@@ -6,11 +6,8 @@ from inventory_system.ports.card import ICardRepository
 from inventory_system.ports.equipment import IEquipmentRepository
 from inventory_system.exceptions.card import CardCreationError, CardNotFoundError, CardUpdateError
 from inventory_system.exceptions.equipment import EquipmentMigrationError, EquipmentRecordNotFoundError, UnknownEquipmentTypeError
+from ..constants import CutTypeCode
 
-class CutTypeCode(str, Enum):
-    NONE = "none"
-    FULL = "full"
-    PARTIAL = "partial"
 
 class CardService:
     def __init__(self, card_repo: ICardRepository, equipment_repo: IEquipmentRepository):

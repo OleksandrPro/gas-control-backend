@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import List, Set
 
 from inventory_system.ports.card import ICardRepository
@@ -10,16 +9,12 @@ from inventory_system.exceptions.equipment import (
     EquipmentMigrationError,
     EquipmentItemNotFoundError,
     EquipmentRecordNotFoundError,
-    EquipmentItemUpdateError,
+    EquipmentItemUpdateError,   
     EquipmentRecordUpdateError,
     UnknownEquipmentTypeError
 )
+from ..constants import CutTypeCode
 
-# Enum that matches 'code' column in 'cut_types' table
-class CutTypeCode(str, Enum):
-    NONE = "none"       # No cut
-    FULL = "full"       # Full cut
-    PARTIAL = "partial" # Partial cut
 
 class EquipmentService:
     def __init__(self, equipment_repo: IEquipmentRepository, card_repo: ICardRepository):
