@@ -1,11 +1,13 @@
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload, selectin_polymorphic
-from inventory_system.schemas import EquipmentDataCreate
+from inventory_system.ports.equipment import IEquipmentRepository
+from inventory_system.schemas import EquipmentItemRead, EquipmentDataCreate, EquipmentDataRead
 from utils.db_utils import DatabaseManager
 from inventory_system.models import EquipmentItem, EquipmentData, PipeData, ValveData
+from inventory_system.exceptions.equipment import EquipmentItemNotFoundError, EquipmentRecordNotFoundError
 
-class EquipmentRepository:
+class EquipmentRepository(IEquipmentRepository):
     def __init__(self, db_manager: DatabaseManager):
         self.manager = db_manager
 
@@ -13,7 +15,7 @@ class EquipmentRepository:
         item = EquipmentItem(card_id=card_id, item_type=item_type, description=description)
         return await self.manager.add_record(item, err_msg="Failed to create equipment item")
 
-    async def add_data_entry(self, item_id: int, data_schema: EquipmentDataCreate):
+    async def add_equipment_record(self, item_id: int, data_schema: EquipmentDataCreate) -> EquipmentDataRead:
         # We need to determine which model class to use based on the input type
         if data_schema.type == "pipe_data":
             model_class = PipeData
@@ -30,7 +32,11 @@ class EquipmentRepository:
         # We need to manually set item_id
         entry = model_class(**data_dict, item_id=item_id)
         
-        return await self.manager.add_record(entry, err_msg="Failed to add data entry")
+        db_model = await self.manager.add_record(entry, err_msg="Failed to add data entry")
+
+        if db_model:
+            return EquipmentDataRead.model_validate(db_model)
+        return None
 
     async def get_item_by_id(self, item_id: int) -> Optional[EquipmentItem]:
         loader = selectinload(EquipmentItem.data_entries).selectin_polymorphic(
@@ -38,9 +44,12 @@ class EquipmentRepository:
         )
         query = select(EquipmentItem).where(EquipmentItem.id == item_id).options(loader)
         
-        return await self.manager.get_first(query, err_msg=f"Item {item_id} not found")
+        db_model = await self.manager.get_first(query, err_msg=f"Item {item_id} not found")
+        if db_model:
+            return EquipmentItemRead.model_validate(db_model)
+        return None
 
-    async def get_items_by_card(self, card_id: int):
+    async def get_card_equipment_items(self, card_id: int) -> List[EquipmentItemRead]:
         loader = selectinload(EquipmentItem.data_entries).selectin_polymorphic(
             [PipeData, ValveData]
         )
@@ -91,7 +100,7 @@ class EquipmentRepository:
         await self.manager.delete_record(item, err_msg=f"Failed to delete equipment item {item_id}")
         return True
 
-    async def delete_data_entry(self, data_id: int) -> bool:
+    async def delete_equipment_record(self, data_id: int) -> bool:
         """
         Deletes a specific data entry (e.g. only 'Fact' column data).
         """

@@ -3,7 +3,7 @@ from typing import List, Union, Annotated
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from inventory_system.schemas import DisplayMainPageCard, CardCreateSchema, CardUpdateSchema, PaginatedResponse, CardFilter
+from inventory_system.schemas import Card, CardCreateSchema, CardUpdateSchema, PaginatedResponse, CardFilter
 
 from utils.db_utils import DatabaseManager
 from database import get_session
@@ -11,6 +11,8 @@ from database import get_session
 from inventory_system.repositories.card import CardRepository
 from inventory_system.repositories.equipment import EquipmentRepository
 from inventory_system.services.card import CardService
+from inventory_system.exceptions.card import CardNotFoundError, CardUpdateError
+from inventory_system.exceptions.equipment import EquipmentMigrationError
 
 
 cards_router = APIRouter(prefix="/cards", tags=["Cards"])
@@ -21,7 +23,7 @@ def get_card_service(session: AsyncSession = Depends(get_session)) -> CardServic
     equipment_repo = EquipmentRepository(db_manager)
     return CardService(card_repo, equipment_repo)
 
-@cards_router.get("", response_model=PaginatedResponse[DisplayMainPageCard])
+@cards_router.get("", response_model=PaginatedResponse[Card])
 async def read_all_cards(session: Annotated[AsyncSession, Depends(get_session)], filter_params: Annotated[CardFilter, Depends()]):
     #TODO later add proper response_model to avoid potential mistakes with auto jsonable_encoder
     db_manager = DatabaseManager(session)
@@ -43,7 +45,16 @@ async def create_card(card: CardCreateSchema, session: Annotated[AsyncSession, D
 
 @cards_router.patch("/{id}")
 async def update_card(id: int, new_data: CardUpdateSchema, card_service: Annotated[CardService, Depends(get_card_service)]):
-    return await card_service.update_card(id, new_data)
+    try:
+        updated_card = await card_service.update_card(id, new_data)
+        return updated_card
+    except CardNotFoundError as e:  
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except CardUpdateError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except EquipmentMigrationError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+
 
 @cards_router.delete("/{card_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_card(

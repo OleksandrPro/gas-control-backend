@@ -42,7 +42,7 @@ class CardUpdateSchema(BaseModel):
 
     cut_column_data_source: Optional[Literal["balance", "fact"]] = None
 
-class DisplayMainPageCard(BaseModel):
+class Card(BaseModel):
     id: int
     inventory_number: str
     inventory_number_eskd: str

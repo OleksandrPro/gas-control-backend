@@ -9,7 +9,7 @@ from .base import (
 from .card import (
     CardCreateSchema,
     CardUpdateSchema,
-    DisplayMainPageCard,
+    Card,
     CardFilter
 )
 
@@ -35,7 +35,7 @@ __all__ = [
     "LookupUpdateSchema",
     "CardCreateSchema",
     "CardUpdateSchema",
-    "DisplayMainPageCard",
+    "Card",
     "EquipmentItemCreate",
     "EquipmentItemRead",
     "EquipmentDataCreate",

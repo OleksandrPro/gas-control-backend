@@ -40,7 +40,7 @@ async def get_card_equipment(
 ):
     db_manager = DatabaseManager(session)
     repo = EquipmentRepository(db_manager)
-    return await repo.get_items_by_card(card_id)
+    return await repo.get_card_equipment_items(card_id)
 
 @equipment_router.patch("/equipment-data/{equipment_id}") 
 async def update_equipment_data(

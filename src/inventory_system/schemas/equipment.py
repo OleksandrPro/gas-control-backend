@@ -1,6 +1,6 @@
-from typing import Literal, Union, Optional, List
+from typing import Literal, Union, Optional, List, Annotated
 from enum import Enum
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 class ColumnTypeEnum(str, Enum):
     BALANCE = "balance"
@@ -54,7 +54,10 @@ class PipeDataRead(PipeDataCreate):
 class ValveDataRead(ValveDataCreate):
     id: int
 
-EquipmentDataRead = Union[PipeDataRead, ValveDataRead]
+EquipmentDataRead = Annotated[
+    Union[PipeDataRead, ValveDataRead], 
+    Field(discriminator='type')
+]
 
 class EquipmentItemRead(BaseModel):
     id: int
