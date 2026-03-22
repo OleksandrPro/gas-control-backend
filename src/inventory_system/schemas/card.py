@@ -1,7 +1,8 @@
 from typing import Optional, List, Literal
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, computed_field
 from datetime import date
 from fastapi import Query
+from ..constants import CutTypeCode
 
 class CardCreateSchema(BaseModel):
     inventory_number: str
@@ -42,6 +43,10 @@ class CardUpdateSchema(BaseModel):
 
     cut_column_data_source: Optional[Literal["balance", "fact"]] = None
 
+class CutTypeRead(BaseModel):
+    code: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
+
 class Card(BaseModel):
     id: int
     inventory_number: str
@@ -58,6 +63,15 @@ class Card(BaseModel):
     address: str
     folder: str
     cut_type_id: Optional[int] = None
+
+    cut_type: Optional[CutTypeRead] = None
+
+    @computed_field
+    @property
+    def cut_code(self) -> CutTypeCode:
+        if self.cut_type and self.cut_type.code:
+            return CutTypeCode(self.cut_type.code) 
+        return CutTypeCode.NONE
 
     model_config = ConfigDict(from_attributes=True)
 

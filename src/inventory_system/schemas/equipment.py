@@ -1,14 +1,10 @@
 from typing import Literal, Union, Optional, List, Annotated
 from enum import Enum
 from pydantic import BaseModel, ConfigDict, Field
-
-class ColumnTypeEnum(str, Enum):
-    BALANCE = "balance"
-    FACT = "fact"
-    CUT = "cut"
+from inventory_system.constants import ColumnType
 
 class EquipmentDataBase(BaseModel):
-    column_type: ColumnTypeEnum
+    column_type: ColumnType
     model_config = ConfigDict(from_attributes=True)
 
 # Concrete Data Schemas
@@ -32,7 +28,7 @@ class EquipmentItemBase(BaseModel):
     description: str
 
 # Item Schema (Container)
-class EquipmentItemCreate(BaseModel):
+class EquipmentItemCreate(EquipmentItemBase):
     data_entries: List[EquipmentDataCreate]
 
     model_config = ConfigDict(from_attributes=True)

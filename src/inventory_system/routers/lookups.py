@@ -67,21 +67,21 @@ async def add_district(
     schema: LookupCreateSchema, 
     repo: Annotated[LookupRepository, Depends(get_lookup_repo)]
 ):
-    return await repo.create(District, schema.value, "Failed to add district")
+    return await repo.create(District, schema)
 
 @lookups_router.post("/property-types", response_model=LookupItemSchema)
 async def add_property_type(
     schema: LookupCreateSchema, 
     repo: Annotated[LookupRepository, Depends(get_lookup_repo)]
 ):
-    return await repo.create(PropertyType, schema.value, "Failed to add property type")
+    return await repo.create(PropertyType, schema)
 
 @lookups_router.post("/object-names", response_model=LookupItemSchema)
 async def add_object_name(
     schema: LookupCreateSchema, 
     repo: Annotated[LookupRepository, Depends(get_lookup_repo)]
 ):
-    return await repo.create(ObjectName, schema.value, "Failed to add object name")
+    return await repo.create(ObjectName, schema)
 
 @lookups_router.post("/cut-types", response_model=LookupItemSchema)
 async def add_cut_type(
@@ -95,21 +95,21 @@ async def add_ground_level(
     schema: LookupCreateSchema, 
     repo: Annotated[LookupRepository, Depends(get_lookup_repo)]
 ):
-    return await repo.create(GroundLevel, schema.value, "Failed to add ground level")
+    return await repo.create(GroundLevel, schema)
 
 @lookups_router.post("/pipe-materials", response_model=LookupItemSchema)
 async def add_pipe_material(
     schema: LookupCreateSchema, 
     repo: Annotated[LookupRepository, Depends(get_lookup_repo)]
 ):
-    return await repo.create(PipeMaterial, schema.value, "Failed to add pipe material")
+    return await repo.create(PipeMaterial, schema)
 
 @lookups_router.post("/pressure-types", response_model=LookupItemSchema)
 async def add_pressure_type(
     schema: LookupCreateSchema, 
     repo: Annotated[LookupRepository, Depends(get_lookup_repo)]
 ):
-    return await repo.create(PressureType, schema.value, "Failed to add pressure type")
+    return await repo.create(PressureType, schema)
 
 
 # --- PUT Endpoints ---
@@ -120,7 +120,7 @@ async def update_district(
     schema: LookupUpdateSchema, 
     repo: Annotated[LookupRepository, Depends(get_lookup_repo)]
 ):
-    return await repo.update(District, record_id, schema.value, "Failed to update district")
+    return await repo.update(District, record_id, schema)
 
 @lookups_router.put("/property-types/{record_id}", response_model=LookupItemSchema)
 async def update_property_type(
@@ -128,7 +128,7 @@ async def update_property_type(
     schema: LookupUpdateSchema, 
     repo: Annotated[LookupRepository, Depends(get_lookup_repo)]
 ):
-    return await repo.update(PropertyType, record_id, schema.value, "Failed to update property type")
+    return await repo.update(PropertyType, record_id, schema)
 
 @lookups_router.put("/object-names/{record_id}", response_model=LookupItemSchema)
 async def update_object_name(
@@ -136,7 +136,7 @@ async def update_object_name(
     schema: LookupUpdateSchema, 
     repo: Annotated[LookupRepository, Depends(get_lookup_repo)]
 ):
-    return await repo.update(ObjectName, record_id, schema.value, "Failed to update object name")
+    return await repo.update(ObjectName, record_id, schema)
 
 @lookups_router.put("/cut-types/{record_id}", response_model=LookupItemSchema)
 async def update_cut_type(
@@ -144,7 +144,7 @@ async def update_cut_type(
     schema: LookupUpdateSchema, 
     repo: Annotated[LookupRepository, Depends(get_lookup_repo)]
 ):
-    return await repo.update(CutType, record_id, schema.value, "Failed to update cut type")
+    return await repo.update(CutType, record_id, schema)
 
 @lookups_router.put("/ground-levels/{record_id}", response_model=LookupItemSchema)
 async def update_ground_level(
@@ -152,7 +152,7 @@ async def update_ground_level(
     schema: LookupUpdateSchema, 
     repo: Annotated[LookupRepository, Depends(get_lookup_repo)]
 ):
-    return await repo.update(GroundLevel, record_id, schema.value, "Failed to update ground level")
+    return await repo.update(GroundLevel, record_id, schema)
 
 @lookups_router.put("/pipe-materials/{record_id}", response_model=LookupItemSchema)
 async def update_pipe_material(
@@ -160,7 +160,7 @@ async def update_pipe_material(
     schema: LookupUpdateSchema, 
     repo: Annotated[LookupRepository, Depends(get_lookup_repo)]
 ):
-    return await repo.update(PipeMaterial, record_id, schema.value, "Failed to update pipe material")
+    return await repo.update(PipeMaterial, record_id, schema)
 
 @lookups_router.put("/pressure-types/{record_id}", response_model=LookupItemSchema)
 async def update_pipe_material(
@@ -168,7 +168,7 @@ async def update_pipe_material(
     schema: LookupUpdateSchema, 
     repo: Annotated[LookupRepository, Depends(get_lookup_repo)]
 ):
-    return await repo.update(PressureType, record_id, schema.value, "Failed to update ressure type")
+    return await repo.update(PressureType, record_id, schema)
 
 # --- DELETE Endpoints ---
 
@@ -177,7 +177,7 @@ async def delete_district(
     record_id: int,
     repo: Annotated[LookupRepository, Depends(get_lookup_repo)]
 ):
-    await repo.delete(District, record_id, "Failed to delete district")
+    await repo.delete(District, record_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @lookups_router.delete("/property-types/{record_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -185,7 +185,7 @@ async def delete_property_type(
     record_id: int,
     repo: Annotated[LookupRepository, Depends(get_lookup_repo)]
 ):
-    await repo.delete(PropertyType, record_id, "Failed to delete property type")
+    await repo.delete(PropertyType, record_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @lookups_router.delete("/object-names/{record_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -193,7 +193,7 @@ async def delete_object_name(
     record_id: int,
     repo: Annotated[LookupRepository, Depends(get_lookup_repo)]
 ):
-    await repo.delete(ObjectName, record_id, "Failed to delete object name")
+    await repo.delete(ObjectName, record_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @lookups_router.delete("/cut-types/{record_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -201,7 +201,7 @@ async def delete_cut_type(
     record_id: int,
     repo: Annotated[LookupRepository, Depends(get_lookup_repo)]
 ):
-    await repo.delete(CutType, record_id, "Failed to delete cut type")
+    await repo.delete(CutType, record_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @lookups_router.delete("/ground-levels/{record_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -209,7 +209,7 @@ async def delete_ground_level(
     record_id: int,
     repo: Annotated[LookupRepository, Depends(get_lookup_repo)]
 ):
-    await repo.delete(GroundLevel, record_id, "Failed to delete ground level")
+    await repo.delete(GroundLevel, record_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @lookups_router.delete("/pipe-materials/{record_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -217,7 +217,7 @@ async def delete_pipe_material(
     record_id: int,
     repo: Annotated[LookupRepository, Depends(get_lookup_repo)]
 ):
-    await repo.delete(PipeMaterial, record_id, "Failed to delete pipe material")
+    await repo.delete(PipeMaterial, record_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @lookups_router.delete("/pressure-types/{record_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -225,5 +225,5 @@ async def delete_pressure_type(
     record_id: int,
     repo: Annotated[LookupRepository, Depends(get_lookup_repo)]
 ):
-    await repo.delete(PressureType, record_id, "Failed to delete pressure type")
+    await repo.delete(PressureType, record_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

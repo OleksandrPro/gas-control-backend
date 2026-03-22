@@ -1,6 +1,7 @@
 from typing import Optional, List
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload, selectin_polymorphic
+from pydantic import TypeAdapter
 from inventory_system.ports.equipment import IEquipmentRepository
 from utils.db_utils import DatabaseManager
 from inventory_system.schemas import EquipmentItemRead, EquipmentDataCreate, EquipmentDataRead
@@ -14,7 +15,13 @@ class EquipmentRepository(IEquipmentRepository):
         item = EquipmentItem(card_id=card_id, item_type=item_type, description=description)
         db_model = await self.manager.add_record(item, err_msg="Failed to create equipment item")
         if db_model:
-            return EquipmentItemRead.model_validate(db_model)
+            return EquipmentItemRead(
+                id=db_model.id,
+                card_id=db_model.card_id,
+                item_type=db_model.item_type,
+                description=db_model.description,
+                data_entries=[]
+            )
         return None
 
     async def add_equipment_record(self, item_id: int, data_schema: EquipmentDataCreate) -> EquipmentDataRead:
@@ -32,10 +39,11 @@ class EquipmentRepository(IEquipmentRepository):
         db_model = await self.manager.add_record(entry, err_msg="Failed to add data entry")
 
         if db_model:
-            return EquipmentDataRead.model_validate(db_model)
+            adapter = TypeAdapter(EquipmentDataRead)
+            return adapter.validate_python(db_model, from_attributes=True)
         return None
 
-    async def get_item_by_id(self, item_id: int) -> Optional[EquipmentItemRead]:
+    async def get_by_id(self, item_id: int) -> Optional[EquipmentItemRead]:
         loader = selectinload(EquipmentItem.data_entries).selectin_polymorphic(
             [PipeData, ValveData]
         )
@@ -70,11 +78,15 @@ class EquipmentRepository(IEquipmentRepository):
         
         db_model = await self.manager.add_record(entry, err_msg="Failed to update data entry")
         if db_model:
-             return EquipmentDataRead.model_validate(db_model)
+            adapter = TypeAdapter(EquipmentDataRead)
+            return adapter.validate_python(db_model, from_attributes=True)
         return None
 
     async def update_item(self, item_id: int, **update_data) -> Optional[EquipmentItemRead]:
-        query = select(EquipmentItem).where(EquipmentItem.id == item_id)
+        loader = selectinload(EquipmentItem.data_entries).selectin_polymorphic(
+            [PipeData, ValveData]
+        )
+        query = select(EquipmentItem).where(EquipmentItem.id == item_id).options(loader)
         item = await self.manager.get_first(query, err_msg=f"Item {item_id} not found")
         
         if not item:

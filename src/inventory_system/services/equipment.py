@@ -13,6 +13,7 @@ from inventory_system.exceptions.equipment import (
     EquipmentRecordUpdateError,
     UnknownEquipmentTypeError
 )
+from inventory_system.exceptions.base import InventorySystemError
 from ..constants import CutTypeCode
 
 
@@ -30,9 +31,7 @@ class EquipmentService:
         if not card:
             raise CardNotFoundError(card_id)
 
-        cut_code = card.cut_type.code if card.cut_type else CutTypeCode.NONE
-
-        self._validate_entries_structure(cut_code, item_in.data_entries)
+        self._validate_entries_structure(card.cut_code, item_in.data_entries)
 
         item = await self.equipment_repo.create_item(
             card_id, 
@@ -47,8 +46,14 @@ class EquipmentService:
             added = await self.equipment_repo.add_equipment_record(item.id, entry)
             if not added:
                 raise EquipmentRecordCreationError(item.id)
+
+        final_item = await self.equipment_repo.get_by_id(item.id)
+
+        if not final_item:
+            # Если мы создали запись, но не смогли ее прочитать - это критическая ошибка БД
+            raise InventorySystemError(f"CRITICAL: Item {item.id} was created but cannot be read from DB")  
             
-        return await self.equipment_repo.get_by_id(item.id)
+        return final_item
     
     async def get_card_equipment(self, card_id: int):
         card = await self.card_repo.get_by_id(card_id)
@@ -102,7 +107,7 @@ class EquipmentService:
                 if not deleted:
                     raise EquipmentRecordNotFoundError(del_id)
 
-        return await self.equipment_repo.get_item_by_id(item_id)
+        return await self.equipment_repo.get_by_id(item_id)
 
     def _validate_entries_structure(self, cut_code: str, entries: List[EquipmentDataCreate]):
         """

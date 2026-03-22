@@ -23,7 +23,7 @@ class CardRepository(ICardRepository):
         return None
 
     async def get_all_cards(self) -> List[Card]:
-        query = select(CardModel)
+        query = select(CardModel).options(selectinload(CardModel.cut_type))
         return await self.manager.get_all(
             query=query, 
             err_msg=f"Error loading card table {CardModel.__tablename__}"
@@ -37,17 +37,13 @@ class CardRepository(ICardRepository):
         return db_model
 
     async def _get_card_orm(self, card_id: int) -> Optional[Card]:
-        query = select(CardModel).where(CardModel.id == card_id)
-        return await self._get_model_orm(query, err_msg="Error finding card with id '{id}'")
-
-    async def get_by_id(self, card_id: int) -> Optional[Card]:
         query = select(CardModel).where(CardModel.id == card_id).options(
             selectinload(CardModel.cut_type)
         )
-        db_model = await self.manager.get_first(
-            query=query,
-            err_msg=f"Error finding card with ID {card_id}"
-        )
+        return await self._get_model_orm(query, err_msg="Error finding card with ID '{id}'")
+
+    async def get_by_id(self, card_id: int) -> Optional[Card]:
+        db_model = await self._get_card_orm(card_id)
 
         if db_model:
             return Card.model_validate(db_model)
@@ -61,7 +57,7 @@ class CardRepository(ICardRepository):
         return None
 
     def _build_filtered_query(self, filter_params: CardFilter, force_pipe_joins: bool = False):
-        query = select(CardModel)
+        query = select(CardModel).options(selectinload(CardModel.cut_type))
 
         if filter_params.district_ids:
             query = query.where(CardModel.district_id.in_(filter_params.district_ids))
