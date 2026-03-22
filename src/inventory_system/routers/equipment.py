@@ -36,29 +36,17 @@ async def create_equipment(
 @equipment_router.get("/cards/{card_id}/equipment", response_model=List[EquipmentItemRead])
 async def get_card_equipment(
     card_id: int, 
-    session: Annotated[AsyncSession, Depends(get_session)]
+    service: Annotated[EquipmentService, Depends(get_equipment_service)]
 ):
-    db_manager = DatabaseManager(session)
-    repo = EquipmentRepository(db_manager)
-    return await repo.get_card_equipment_items(card_id)
+    return await service.get_card_equipment(card_id)
 
 @equipment_router.patch("/equipment-data/{equipment_id}") 
 async def update_equipment_data(
     equipment_id: int,
     update_data: dict, # TODO try to implement something like EquipmentDataUpdate
-    session: Annotated[AsyncSession, Depends(get_session)]
+    service: Annotated[EquipmentService, Depends(get_equipment_service)]
 ):
-    db_manager = DatabaseManager(session)
-    repo = EquipmentRepository(db_manager)
-    
-    # Clear None values when using a schema with Optional fields
-    # clean_data = update_schema.model_dump(exclude_unset=True)
-    
-    result = await repo.update_data_entry(equipment_id, **update_data)
-    if not result:
-        raise HTTPException(status_code=404, detail="Data entry not found")
-        
-    return result
+    return await service.update_equipment_record(equipment_id, update_data)
 
 @equipment_router.patch("/equipment-items/{item_id}", response_model=EquipmentItemRead)
 async def update_equipment_item(
@@ -73,16 +61,9 @@ async def update_equipment_item(
 @equipment_router.delete("/equipment-data/{equipment_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_equipment_data(
     equipment_id: int,
-    session: Annotated[AsyncSession, Depends(get_session)]
+    service: Annotated[EquipmentService, Depends(get_equipment_service)]
 ):
-    db_manager = DatabaseManager(session)
-    repo = EquipmentRepository(db_manager)
-    
-    deleted = await repo.delete_data_entry(equipment_id)
-    
-    if not deleted:
-        raise HTTPException(status_code=404, detail="Data entry not found")
-        
+    await service.delete_equipment_record(equipment_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 # Delete Equipment Item (Container) Endpoint
@@ -90,14 +71,7 @@ async def delete_equipment_data(
 @equipment_router.delete("/equipment-items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_equipment_item(
     item_id: int,
-    session: Annotated[AsyncSession, Depends(get_session)]
+    service: Annotated[EquipmentService, Depends(get_equipment_service)]
 ):
-    db_manager = DatabaseManager(session)
-    repo = EquipmentRepository(db_manager)
-    
-    deleted = await repo.delete_item(item_id)
-    
-    if not deleted:
-        raise HTTPException(status_code=404, detail="Equipment item not found")
-        
+    await service.delete_equipment_item(item_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

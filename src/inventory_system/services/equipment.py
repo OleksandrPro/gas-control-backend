@@ -35,7 +35,6 @@ class EquipmentService:
         if not card:
             raise CardNotFoundError(card_id)
 
-        # Get the cut code. If cut_type is None, we treat it as NONE (No cut).
         cut_code = card.cut_type.code if card.cut_type else CutTypeCode.NONE
 
         self._validate_entries_structure(cut_code, item_in.data_entries)
@@ -56,6 +55,19 @@ class EquipmentService:
             
         return await self.equipment_repo.get_by_id(item.id)
     
+    async def get_card_equipment(self, card_id: int):
+        card = await self.card_repo.get_by_id(card_id)
+        if not card:
+            raise CardNotFoundError(card_id)
+        
+        return await self.equipment_repo.get_card_equipment_items(card_id)
+
+    async def update_equipment_record(self, record_id: int, update_data: dict):
+        updated = await self.equipment_repo.update_equipment_record(record_id, **update_data)
+        if not updated:
+            raise EquipmentRecordNotFoundError(record_id)
+        return updated
+
     async def update_equipment_item(self, item_id: int, update_data: EquipmentItemUpdate):
         item = await self.equipment_repo.get_by_id(item_id)
         if not item:
@@ -132,3 +144,13 @@ class EquipmentService:
                 expected=[t.value for t in required_types],
                 got=[t.value for t in unique_types]
             )
+
+    async def delete_equipment_record(self, record_id: int):
+        deleted = await self.equipment_repo.delete_equipment_record(record_id)
+        if not deleted:
+            raise EquipmentRecordNotFoundError(record_id)
+
+    async def delete_equipment_item(self, item_id: int):
+        deleted = await self.equipment_repo.delete_item(item_id)
+        if not deleted:
+            raise EquipmentItemNotFoundError(item_id)
