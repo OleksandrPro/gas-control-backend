@@ -79,16 +79,16 @@ The roadmap is regularly updated based on emerging business requirements to ensu
 
 ### Phase 2: Data & Security (Upcoming)
 
- - [] Legacy Data Import: Automated pipeline to populate the database directly from historical Excel spreadsheets (50k+ rows).
+ - [ ] Legacy Data Import: Automated pipeline to populate the database directly from historical Excel spreadsheets (50k+ rows).
 
- - [] Authentication & Authorization: Secure login system.
+ - [ ] Authentication & Authorization: Secure login system.
 
- - [] Role-Based Access Control (RBAC): Differentiating permissions between Administrators, Editors, and Viewers.
+ - [ ] Role-Based Access Control (RBAC): Differentiating permissions between Administrators, Editors, and Viewers.
 
 ### Phase 3: Analytics & Reporting (Planned)
 
- - [] Data Export: Generating downloadable Excel/CSV reports based on active filters.
+ - [ ] Data Export: Generating downloadable Excel/CSV reports based on active filters.
 
- - [] Audit Logging: Tracking the history of changes (who modified which card and when).
+ - [ ] Audit Logging: Tracking the history of changes (who modified which card and when).
 
- - [] Analytics Dashboard: Visualizing aggregate infrastructure metrics (charts and graphs).
+ - [ ] Analytics Dashboard: Visualizing aggregate infrastructure metrics (charts and graphs).
