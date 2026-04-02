@@ -1,14 +1,10 @@
-from typing import Literal, Union, Optional, List
+from typing import Literal, Union, Optional, List, Annotated
 from enum import Enum
-from pydantic import BaseModel, ConfigDict
-
-class ColumnTypeEnum(str, Enum):
-    BALANCE = "balance"
-    FACT = "fact"
-    CUT = "cut"
+from pydantic import BaseModel, ConfigDict, Field
+from inventory_system.constants import ColumnType
 
 class EquipmentDataBase(BaseModel):
-    column_type: ColumnTypeEnum
+    column_type: ColumnType
     model_config = ConfigDict(from_attributes=True)
 
 # Concrete Data Schemas
@@ -27,11 +23,12 @@ class ValveDataCreate(EquipmentDataBase):
 # Union for creating data
 EquipmentDataCreate = Union[PipeDataCreate, ValveDataCreate]
 
-
-# Item Schema (Container)
-class EquipmentItemCreate(BaseModel):
+class EquipmentItemBase(BaseModel):
     item_type: str # "pipe" or "valve"
     description: str
+
+# Item Schema (Container)
+class EquipmentItemCreate(EquipmentItemBase):
     data_entries: List[EquipmentDataCreate]
 
     model_config = ConfigDict(from_attributes=True)
@@ -54,13 +51,14 @@ class PipeDataRead(PipeDataCreate):
 class ValveDataRead(ValveDataCreate):
     id: int
 
-EquipmentDataRead = Union[PipeDataRead, ValveDataRead]
+EquipmentDataRead = Annotated[
+    Union[PipeDataRead, ValveDataRead], 
+    Field(discriminator='type')
+]
 
-class EquipmentItemRead(BaseModel):
+class EquipmentItemRead(EquipmentItemBase):
     id: int
     card_id: int
-    item_type: str
-    description: str
     data_entries: List[EquipmentDataRead]
 
     model_config = ConfigDict(from_attributes=True)

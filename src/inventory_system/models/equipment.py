@@ -1,14 +1,8 @@
-import enum
 from typing import List, Optional
-from sqlalchemy import String, Integer, Float, ForeignKey, Enum
+from sqlalchemy import String, Integer, Float, ForeignKey, Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from inventory_system.models.base import Base
-
-# Enum for column types (Balance, Fact, Cut)
-class ColumnType(str, enum.Enum):
-    BALANCE = "balance"  # Balance sheet quantity
-    FACT = "fact"        # Actual physical quantity
-    CUT = "cut"          # Quantity in cut/removed state
+from ..constants import ColumnType
 
 # LEVEL 1: CONTAINER (Logical Equipment Unit)
 class EquipmentItem(Base):
@@ -41,7 +35,7 @@ class EquipmentData(Base):
     item_id: Mapped[int] = mapped_column(ForeignKey("equipment_items.id"), nullable=False)
     item: Mapped["EquipmentItem"] = relationship(back_populates="data_entries")
     
-    column_type: Mapped[ColumnType] = mapped_column(Enum(ColumnType), nullable=False)
+    column_type: Mapped[ColumnType] = mapped_column(SQLEnum(ColumnType), nullable=False)
     type: Mapped[str] = mapped_column(String(50)) 
 
     __mapper_args__ = {
