@@ -169,7 +169,7 @@ class CardRepository(ICardRepository):
         return None
     
     async def delete(self, card_id: int) -> bool:
-        card = await self.get_card(card_id)
+        card = await self._get_card_orm(card_id)
         
         if not card:
             return False
