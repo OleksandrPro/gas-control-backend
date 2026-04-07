@@ -4,9 +4,9 @@ services:
     container_name: gas-control-db
     restart: always
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: gas_control_database
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     env_file:
       - .env
     networks:
@@ -14,7 +14,7 @@ services:
     volumes:
       - pgdata-gc:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d gas_control_database"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -30,12 +30,13 @@ services:
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
+    ports:
+      - "7777:7777"
     networks:
       - db-network
     depends_on:
-      - postgres
-    volumes:
-      - ./src:/app/src
+      postgres:
+        condition: service_healthy
     command: sh -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 7777"
 
 volumes:
